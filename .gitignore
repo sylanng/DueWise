@@ -7,3 +7,5 @@ dist/
 serviceAccountKey*.json
 *-firebase-adminsdk-*.json
 .DS_Store
+
+serviceAccountKey.json
