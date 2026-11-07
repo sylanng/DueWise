@@ -1,0 +1,38 @@
+/* client/src/styles/tokens.css
+   Design tokens. When the Figma design arrives, change the values here
+   (colors, font, radius, spacing) and the whole app restyles. */
+:root {
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-contrast: #ffffff;
+  --color-bg: #f5f6fa;
+  --color-surface: #ffffff;
+  --color-text: #1f2430;
+  --color-muted: #6b7280;
+  --color-border: #e3e6ee;
+
+  --color-danger: #d92d20;
+  --color-danger-bg: #fef3f2;
+  --color-warning: #b54708;
+  --color-warning-bg: #fffaeb;
+  --color-success: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-info: #3538cd;
+  --color-info-bg: #eef2ff;
+
+  --font-body: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --sidebar-width: 220px;
+  --nav-height: 64px;
+}
