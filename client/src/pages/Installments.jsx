@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   getInstallments,
   addInstallment,
   updateInstallment,
   deleteInstallment,
+  newIdempotencyKey,
   todayString,
 } from '../services/api';
 import { filterInstallments, getDisplayStatus } from '../services/installmentView';
@@ -26,6 +27,7 @@ export default function Installments() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
+  const submitKey = useRef(null); // one key per "Add" form, reused if the same form is saved again
   const today = todayString();
 
   const load = useCallback(async ({ silent = false } = {}) => {
@@ -50,6 +52,7 @@ export default function Installments() {
   const setFilter = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
 
   function openAdd() {
+    submitKey.current = newIdempotencyKey();
     setEditing(null);
     setFormError('');
     setFormOpen(true);
@@ -67,7 +70,7 @@ export default function Installments() {
     const wasEditing = Boolean(editing);
     try {
       if (wasEditing) await updateInstallment(editing.id, values);
-      else await addInstallment(values);
+      else await addInstallment(values, { idempotencyKey: submitKey.current });
       setFormOpen(false);
       await load({ silent: true });
       toast.success(wasEditing ? 'Installment updated.' : 'Installment added.');
