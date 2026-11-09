@@ -1,8 +1,8 @@
 // client/src/services/api.js
 // The ONLY file React pages use to get data.
 //
-// Mock mode (default in Phase 1): everything lives in memory, no server needed.
-// Real mode (Phase 2): fill in `request()` and the `real` object below.
+// Mock mode (VITE_MOCK_MODE=true, the default): everything lives in memory, no server needed.
+// Real mode (VITE_MOCK_MODE=false): every call goes to our Express API (see `request()` below).
 // Every function has the same name, arguments and return shape in both modes,
 // so pages never change when you switch.
 //
@@ -19,15 +19,18 @@ import {
   isBelowThreshold,
 } from './cashflow.js';
 import { createSampleData } from '../data/sampleData.js';
+import { getIdToken, notifyUnauthorized } from './authBridge.js';
 
 export const MOCK_MODE = import.meta.env?.VITE_MOCK_MODE !== 'false';
 
 // Same idea as the errors the real API will return (400, 401, 404, ...)
 export class ApiError extends Error {
-  constructor(message, status = 500) {
+  constructor(message, status = 500, code, details) {
     super(message);
     this.name = 'ApiError';
-    this.status = status;
+    this.status = status; // 0 = could not reach the server
+    this.code = code;
+    this.details = details; // { field: message } for validation errors
   }
 }
 
@@ -35,6 +38,15 @@ export function todayString() {
   const d = new Date();
   const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// One random key per "Add" form. If the same form is saved twice (for example after a server
+// error), the server sees the same key and updates one record instead of creating two.
+export function newIdempotencyKey() {
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`
+  );
 }
 
 const daysBetween = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 86400000);
@@ -56,10 +68,13 @@ function makeCollection(key, prefix, defaults = () => ({})) {
       await delay();
       return clone(db[key]);
     },
-    add: async (data) => {
+    add: async (data, options) => {
       await delay();
-      const record = { ...defaults(), ...clone(data), id: newId(prefix) };
-      db[key].push(record);
+      const id = options?.idempotencyKey ? `k_${options.idempotencyKey}` : newId(prefix);
+      const record = { ...defaults(), ...clone(data), id };
+      const existing = db[key].findIndex((r) => r.id === id);
+      if (existing === -1) db[key].push(record);
+      else db[key][existing] = record; // same key = same record (safe to retry)
       return clone(record);
     },
     update: async (id, data) => {
@@ -220,38 +235,78 @@ export function resetMockData() {
 }
 
 // =====================================================================
-// REAL IMPLEMENTATION (Phase 2)
+// REAL IMPLEMENTATION: calls our Express API
 // =====================================================================
-// TODO Phase 2: build request() to call fetch(`${API_URL}${path}`) with the
-// Firebase ID token in the Authorization header, then throw ApiError on
-// 400 / 401 / network failures.
 
-async function request(method, path, body) {
-  throw new ApiError(`Real API is not connected yet (${method} ${path}). Set VITE_MOCK_MODE=true.`, 0);
+const API_URL = (import.meta.env?.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+
+// Sends one request with the Firebase ID token. Throws ApiError for anything that goes wrong:
+//   status 0   server unreachable (offline, or a free host that is still waking up)
+//   status 401 not signed in / session expired (also tells AuthContext to sign out)
+//   status 400 validation failed (error.details has the per-field messages)
+async function request(method, path, body, extraHeaders) {
+  let idToken = null;
+  try {
+    idToken = await getIdToken();
+  } catch {
+    idToken = null;
+  }
+  if (!idToken) {
+    notifyUnauthorized();
+    throw new ApiError('Please sign in to continue.', 401, 'auth/missing-token');
+  }
+
+  const headers = { Accept: 'application/json', Authorization: `Bearer ${idToken}`, ...extraHeaders };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new ApiError('Cannot reach the server. Check your connection and try again.', 0, 'network');
+  }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null; // empty or non-JSON body
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) notifyUnauthorized();
+    throw new ApiError(data?.message || `Request failed (${response.status}).`, response.status, data?.code, data?.details);
+  }
+  return data;
 }
+
+const idem = (options) => (options?.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : undefined);
 
 const real = {
   getInstallments: () => request('GET', '/api/installments'),
-  addInstallment: (data) => request('POST', '/api/installments', data),
+  addInstallment: (data, options) => request('POST', '/api/installments', data, idem(options)),
   updateInstallment: (id, data) => request('PUT', `/api/installments/${id}`, data),
   deleteInstallment: (id) => request('DELETE', `/api/installments/${id}`),
 
   getAllowances: () => request('GET', '/api/allowances'),
-  addAllowance: (data) => request('POST', '/api/allowances', data),
-  // NOTE: these four routes are not in the project plan's endpoint table.
-  // Phase 1 needs "records can be edited", so add them to the Express API too.
+  addAllowance: (data, options) => request('POST', '/api/allowances', data, idem(options)),
   updateAllowance: (id, data) => request('PUT', `/api/allowances/${id}`, data),
   deleteAllowance: (id) => request('DELETE', `/api/allowances/${id}`),
   getExpenses: () => request('GET', '/api/expenses'),
-  addExpense: (data) => request('POST', '/api/expenses', data),
+  addExpense: (data, options) => request('POST', '/api/expenses', data, idem(options)),
   updateExpense: (id, data) => request('PUT', `/api/expenses/${id}`, data),
   deleteExpense: (id) => request('DELETE', `/api/expenses/${id}`),
 
-  getSettings: () => request('GET', '/api/settings'), // also not in the plan's table
+  getSettings: () => request('GET', '/api/settings'),
   updateSettings: (patch) => request('PUT', '/api/settings', patch),
 
-  getProjection: () => request('GET', '/api/projection'),
-  simulate: (plan) => request('POST', '/api/simulate', plan),
+  // The browser's local date is sent so "today" matches the user's timezone (the server runs in UTC)
+  getProjection: () => request('GET', `/api/projection?today=${todayString()}`),
+  simulate: (plan) => request('POST', '/api/simulate', { ...plan, today: todayString() }),
 };
 
 // =====================================================================

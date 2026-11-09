@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getSettings, updateSettings } from '../services/api';
 import { validateSettings, normalizeSettings } from '../services/validation';
 import FormField from '../components/FormField.jsx';
+import GoogleConnectionCard from '../components/GoogleConnectionCard.jsx';
 import { useToast } from '../hooks/useToast.js';
 
 // Phase 1: balance settings only. Phase 2 adds Google connection status,
@@ -64,6 +65,8 @@ export default function Settings() {
   return (
     <div>
       <div className="page-header"><h1>Settings</h1></div>
+
+      <GoogleConnectionCard />
 
       {loadError && <div className="banner banner-error" role="alert">{loadError}</div>}
       {!values && !loadError && <p className="muted">Loading settings…</p>}
