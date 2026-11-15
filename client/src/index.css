@@ -1,0 +1,51 @@
+
+:root {
+  font-family: 'DM Sans', Arial, sans-serif;
+  color: #142746;
+  background: #F1F5F9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  font-weight: 400;
+  font-smooth: always;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #F1F5F9;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(101, 85, 232, 0.25);
+  outline-offset: 2px;
+}
