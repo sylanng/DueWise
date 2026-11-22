@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import apiRequest from '../services/api';
+import CustomDropdown from '../components/CustomDropdown';
 
 function PurchaseSimulator() {
   const [currentProjectedBalance, setCurrentProjectedBalance] = useState(0);
@@ -9,15 +10,18 @@ function PurchaseSimulator() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [form, setForm] = useState({
     purchaseName: '',
     purchaseAmount: '',
-    installmentCount: '6',
+    installmentCount: '',
     firstDueDate: '',
   });
 
   const [result, setResult] = useState(null);
+  const [paymentFrequency, setPaymentFrequency] = useState('monthly');
+  const [showResultsModal, setShowResultsModal] = useState(false);
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat('en-PH', {
@@ -120,6 +124,11 @@ useEffect(() => {
       [name]: value,
     }));
 
+    setFieldErrors((previous) => ({
+      ...previous,
+      [name]: '',
+    }));
+
     setResult(null);
   };
 
@@ -129,6 +138,12 @@ useEffect(() => {
         ...previous,
         firstDueDate: '',
       }));
+
+      setFieldErrors((previous) => ({
+        ...previous,
+        firstDueDate: '',
+      }));
+
       setResult(null);
       return;
     }
@@ -142,6 +157,11 @@ useEffect(() => {
       firstDueDate: `${year}-${month}-${day}`,
     }));
 
+    setFieldErrors((previous) => ({
+      ...previous,
+      firstDueDate: '',
+    }));
+
     setResult(null);
   };
 
@@ -149,25 +169,49 @@ useEffect(() => {
 const handleSimulation = (event) => {
   event.preventDefault();
 
+  const errors = {};
   const purchaseAmount = Number(form.purchaseAmount);
   const installmentCount = Number(form.installmentCount);
 
-  if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
-    alert('Please enter a purchase amount greater than zero.');
-    return;
+  // Purchase name
+  if (!form.purchaseName.trim()) {
+    errors.purchaseName = 'Please enter a purchase name.';
+  } else if (form.purchaseName.trim().length < 2) {
+    errors.purchaseName = 'Purchase name must contain at least 2 characters.';
   }
 
-  if (
-    !Number.isInteger(installmentCount) ||
-    installmentCount < 1 ||
-    installmentCount > 60
-  ) {
-    alert('Please enter between 1 and 60 installments.');
-    return;
+  // Purchase amount
+  if (form.purchaseAmount.trim() === '') {
+    errors.purchaseAmount = 'Please enter the purchase amount.';
+  } else if (!Number.isFinite(purchaseAmount) || purchaseAmount <= 0) {
+    errors.purchaseAmount = 'Purchase amount must be greater than ₱0.';
+  } else if (purchaseAmount > 10000000) {
+    errors.purchaseAmount = 'Purchase amount cannot exceed ₱10,000,000.';
+  } else if (Math.round(purchaseAmount * 100) !== purchaseAmount * 100) {
+    errors.purchaseAmount = 'Please enter no more than 2 decimal places.';
   }
 
+  // Number of installments
+  if (form.installmentCount.trim() === '') {
+    errors.installmentCount = 'Please enter the number of installments.';
+  } else if (!Number.isInteger(installmentCount)) {
+    errors.installmentCount = 'Installment count must be a whole number.';
+  } else if (installmentCount < 1 || installmentCount > 60) {
+    errors.installmentCount = 'Enter between 1 and 60 installments.';
+  }
+
+  // First payment due date
   if (!form.firstDueDate) {
-    alert('Please select the first payment due date.');
+    errors.firstDueDate = 'Please select the first payment due date.';
+  } else if (
+    Number.isNaN(new Date(`${form.firstDueDate}T00:00:00`).getTime())
+  ) {
+    errors.firstDueDate = 'Please select a valid payment due date.';
+  }
+
+  setFieldErrors(errors);
+
+  if (Object.keys(errors).length > 0) {
     return;
   }
 
@@ -179,18 +223,25 @@ const handleSimulation = (event) => {
 
   for (let i = 0; i < installmentCount; i++) {
     const dueDate = new Date(firstDate);
-    const originalDay = firstDate.getDate();
 
-    dueDate.setDate(1);
-    dueDate.setMonth(firstDate.getMonth() + i);
+    if (paymentFrequency === 'weekly') {
+      dueDate.setDate(firstDate.getDate() + i * 7);
+    } else if (paymentFrequency === 'biweekly') {
+      dueDate.setDate(firstDate.getDate() + i * 14);
+    } else if (paymentFrequency === 'monthly') {
+      const originalDay = firstDate.getDate();
 
-    const lastDayOfMonth = new Date(
-      dueDate.getFullYear(),
-      dueDate.getMonth() + 1,
-      0
-    ).getDate();
+      dueDate.setDate(1);
+      dueDate.setMonth(firstDate.getMonth() + i);
 
-    dueDate.setDate(Math.min(originalDay, lastDayOfMonth));
+      const lastDayOfMonth = new Date(
+        dueDate.getFullYear(),
+        dueDate.getMonth() + 1,
+        0
+      ).getDate();
+
+      dueDate.setDate(Math.min(originalDay, lastDayOfMonth));
+    }
 
     const projectedBalance =
       currentProjectedBalance - paymentPerInstallment * (i + 1);
@@ -248,6 +299,7 @@ const handleSimulation = (event) => {
     paymentSchedule,
     status,
   });
+  setShowResultsModal(true);
 };
 
 
@@ -255,11 +307,14 @@ const handleSimulation = (event) => {
     setForm({
       purchaseName: '',
       purchaseAmount: '',
-      installmentCount: '6',
+      installmentCount: '',
       firstDueDate: '',
     });
 
+    setFieldErrors({});
+    setPaymentFrequency('monthly');
     setResult(null);
+    setShowResultsModal(false);
   };
 
   if (loading) {
@@ -305,12 +360,30 @@ const handleSimulation = (event) => {
         </p>
       </div>
 
-      <div className="simulator-balance-card">
+      <div
+        className={`simulator-balance-card ${
+          currentProjectedBalance < 0
+            ? 'balance-danger'
+            : currentProjectedBalance < reserveLimit
+              ? 'balance-warning'
+              : 'balance-healthy'
+        }`}
+      >
         <span>Current Projected Balance</span>
+
         <strong>{formatCurrency(currentProjectedBalance)}</strong>
+
         <small>
           Minimum reserve limit: {formatCurrency(reserveLimit)}
         </small>
+
+        <div className="balance-status-label">
+          {currentProjectedBalance < 0
+            ? 'Insufficient Funds'
+            : currentProjectedBalance < reserveLimit
+              ? 'Below Minimum Reserve'
+              : 'Healthy Balance'}
+        </div>
       </div>
 
       <div className="form-card simulator-form-card">
@@ -319,7 +392,7 @@ const handleSimulation = (event) => {
           Enter the details of the purchase you want to evaluate.
         </p>
 
-        <form onSubmit={handleSimulation}>
+        <form onSubmit={handleSimulation} noValidate>
           <div className="form-grid">
             <label>
               Purchase Name
@@ -329,8 +402,12 @@ const handleSimulation = (event) => {
                 value={form.purchaseName}
                 onChange={handleChange}
                 placeholder="e.g. New Smartphone"
-                required
+                className={fieldErrors.purchaseName ? 'field-invalid' : ''}
+                aria-invalid={Boolean(fieldErrors.purchaseName)}
               />
+              {fieldErrors.purchaseName && (
+                <span className="field-error">{fieldErrors.purchaseName}</span>
+              )}
             </label>
 
             <label>
@@ -343,24 +420,70 @@ const handleSimulation = (event) => {
                 min="0.01"
                 step="0.01"
                 placeholder="e.g. 12000"
-                required
+                className={fieldErrors.purchaseAmount ? 'field-invalid' : ''}
+                aria-invalid={Boolean(fieldErrors.purchaseAmount)}
               />
+              {fieldErrors.purchaseAmount && (
+                <span className="field-error">{fieldErrors.purchaseAmount}</span>
+              )}
             </label>
 
             <label>
               Number of Installments
-              <select
-                name="installmentCount"
-                value={form.installmentCount}
-                onChange={handleChange}
-              >
-                <option value="3">3 Installments</option>
-                <option value="6">6 Installments</option>
-                <option value="9">9 Installments</option>
-                <option value="12">12 Installments</option>
-                <option value="18">18 Installments</option>
-                <option value="24">24 Installments</option>
-              </select>
+
+              <div className="installment-input-wrapper">
+                <input
+                  type="number"
+                  name="installmentCount"
+                  value={form.installmentCount}
+                  onChange={handleChange}
+                  min="1"
+                  max="60"
+                  step="1"
+                  placeholder="Enter number"
+                  className={fieldErrors.installmentCount ? 'field-invalid' : ''}
+                  aria-invalid={Boolean(fieldErrors.installmentCount)}
+                />
+
+                <span>
+                  {Number(form.installmentCount) === 1
+                    ? 'Installment'
+                    : 'Installments'}
+                </span>
+              </div>
+
+              {fieldErrors.installmentCount && (
+                <span className="field-error">{fieldErrors.installmentCount}</span>
+              )}
+            </label>
+
+            <label>
+              Payment Frequency
+
+              <div className="payment-frequency-control">
+                <CustomDropdown
+                  value={paymentFrequency}
+                  options={[
+                    { value: 'weekly', label: 'Weekly' },
+                    { value: 'biweekly', label: 'Every two weeks' },
+                    { value: 'monthly', label: 'Monthly' },
+                  ]}
+                  onChange={(value) => {
+                    setPaymentFrequency(value);
+                    setResult(null);
+                  }}
+                />
+              </div>
+
+              <small className="installment-frequency-note">
+                Payments are scheduled {
+                  paymentFrequency === 'weekly'
+                    ? 'every week.'
+                    : paymentFrequency === 'biweekly'
+                      ? 'every two weeks.'
+                      : 'every month.'
+                }
+              </small>
             </label>
 
             <label>
@@ -374,11 +497,15 @@ const handleSimulation = (event) => {
                 onChange={handleFirstDueDateChange}
                 dateFormat="MM/dd/yyyy"
                 placeholderText="Select first payment due date"
-                className="duewise-datepicker"
+                className={`duewise-datepicker ${
+                  fieldErrors.firstDueDate ? 'field-invalid' : ''
+                }`}
                 calendarClassName="duewise-calendar"
                 showPopperArrow={false}
-                required
               />
+              {fieldErrors.firstDueDate && (
+                <span className="field-error">{fieldErrors.firstDueDate}</span>
+              )}
             </label>
           </div>
 
@@ -398,9 +525,21 @@ const handleSimulation = (event) => {
         </form>
       </div>
 
-      {result && (
-        <div className="simulator-results">
-          <div className="form-card">
+      {result && showResultsModal && (
+        <div className="simulator-results-modal-overlay">
+          <div className="simulator-results-modal">
+            <div className="simulator-results-modal-header">
+              <span>Purchase Simulation</span>
+              <button
+                type="button"
+                className="simulator-results-close"
+                onClick={() => setShowResultsModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="form-card">
             <h3>Simulation Results</h3>
 
             <p className="simulator-purchase-name">
@@ -432,104 +571,113 @@ const handleSimulation = (event) => {
             </div>
 
             
-<div className="projection-breakdown">
-  <div>
-    <span>Current Projected Balance</span>
-    <strong>{formatCurrency(currentProjectedBalance)}</strong>
-  </div>
+          <div className="projection-breakdown">
+            <div>
+              <span>Current Projected Balance</span>
+              <strong>{formatCurrency(currentProjectedBalance)}</strong>
+            </div>
 
-  <div>
-    <span>First Installment Payment</span>
-    <strong className="projection-negative">
-      - {formatCurrency(result.paymentPerInstallment)}
-    </strong>
-  </div>
+            <div>
+              <span>First Installment Payment</span>
+              <strong className="projection-negative">
+                - {formatCurrency(result.paymentPerInstallment)}
+              </strong>
+            </div>
 
-  <div className="projection-total">
-    <span>Balance After First Payment</span>
-    <strong>
-      {formatCurrency(result.projectedBalanceAfterPayment)}
-    </strong>
-  </div>
+            <div className="projection-total">
+              <span>Balance After First Payment</span>
+              <strong>
+                {formatCurrency(result.projectedBalanceAfterPayment)}
+              </strong>
+            </div>
 
-  <div>
-    <span>Balance If Entire Purchase Is Paid Now</span>
-    <strong>
-      {formatCurrency(result.remainingBalanceAfterPurchase)}
-    </strong>
-  </div>
-</div>
+            <div
+              className={
+                result.remainingBalanceAfterPurchase < 0
+                  ? 'projection-balance-negative'
+                  : result.remainingBalanceAfterPurchase > 0
+                  ? 'projection-balance-positive'
+                  : 'projection-balance-zero'
+              }
+            >
+              <span>Balance If Entire Purchase Is Paid Now</span>
+              <strong>
+                {formatCurrency(result.remainingBalanceAfterPurchase)}
+              </strong>
+            </div>
+          </div>
 
-<div className="simulator-schedule-card">
-  <h3>Projected Installment Schedule</h3>
-  <p className="projection-description">
-    Review your estimated balance after each scheduled payment.
-  </p>
+          <div className="simulator-schedule-card">
+            <h3>Projected Installment Schedule</h3>
+            <p className="projection-description">
+              Review your estimated balance after each scheduled payment.
+            </p>
 
-  <div className="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th>Payment</th>
-          <th>Due Date</th>
-          <th>Payment Amount</th>
-          <th>Projected Balance</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+            <div className="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Payment</th>
+                    <th>Due Date</th>
+                    <th>Payment Amount</th>
+                    <th>Projected Balance</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
 
-      <tbody>
-        {result.paymentSchedule.map((payment) => {
-          const [year, month, day] = payment.dueDate.split('-');
+                <tbody>
+                  {result.paymentSchedule.map((payment) => {
+                    const [year, month, day] = payment.dueDate.split('-');
 
-          const formattedDate = new Date(
-            Number(year),
-            Number(month) - 1,
-            Number(day)
-          ).toLocaleDateString('en-PH', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          });
+                    const formattedDate = new Date(
+                      Number(year),
+                      Number(month) - 1,
+                      Number(day)
+                    ).toLocaleDateString('en-PH', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    });
 
-          return (
-            <tr key={payment.paymentNumber}>
-              <td>Payment {payment.paymentNumber}</td>
-              <td>{formattedDate}</td>
-              <td>{formatCurrency(payment.paymentAmount)}</td>
-              <td>{formatCurrency(payment.projectedBalance)}</td>
-              <td>
-                <span
-                  className={
-                    payment.projectedBalance < 0
-                      ? 'status-danger'
-                      : payment.projectedBalance < reserveLimit
-                      ? 'status-warning'
-                      : 'status-paid'
-                  }
-                >
-                  {payment.projectedBalance < 0
-                    ? 'Insufficient'
-                    : payment.projectedBalance < reserveLimit
-                    ? 'Below Reserve'
-                    : 'Healthy'}
-                </span>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  </div>
-</div>
-<p className="simulator-disclaimer">
-  This simulation evaluates every proposed installment payment using
-  your current projected balance. It assumes equal monthly payments
-  without interest, fees, or additional future income and expenses.
-  Actual provider terms may differ.
-</p>
+                    return (
+                      <tr key={payment.paymentNumber}>
+                        <td>Payment {payment.paymentNumber}</td>
+                        <td>{formattedDate}</td>
+                        <td>{formatCurrency(payment.paymentAmount)}</td>
+                        <td>{formatCurrency(payment.projectedBalance)}</td>
+                        <td>
+                          <span
+                            className={
+                              payment.projectedBalance < 0
+                                ? 'status-danger'
+                                : payment.projectedBalance < reserveLimit
+                                ? 'status-warning'
+                                : 'status-paid'
+                            }
+                          >
+                            {payment.projectedBalance < 0
+                              ? 'Insufficient'
+                              : payment.projectedBalance < reserveLimit
+                              ? 'Below Reserve'
+                              : 'Healthy'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="simulator-disclaimer">
+            This simulation evaluates every proposed installment payment using
+            your current projected balance. It assumes equal monthly payments
+            without interest, fees, or additional future income and expenses.
+            Actual provider terms may differ.
+          </p>
           </div>
         </div>
+      </div>
       )}
       </>
       )}

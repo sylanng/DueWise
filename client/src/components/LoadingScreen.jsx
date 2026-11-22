@@ -1,17 +1,38 @@
+
 import DueWiseLogo from "./DueWiseLogo";
 
-function LoadingScreen({ message = "Preparing your financial dashboard..." }) {
+function LoadingScreen({
+  message = "Preparing your financial dashboard...",
+  isExiting = false,
+}) {
   return (
-    <div className="duewise-loading-screen">
+    <div
+      className={`duewise-loading-screen ${
+        isExiting ? "is-exiting" : ""
+      }`}
+    >
       <div className="duewise-loading-content">
-        <DueWiseLogo size="large" showText={true} />
+
+        <div className="loading-logo-wrapper">
+          <DueWiseLogo size="large" showText={true} />
+        </div>
 
         <div className="duewise-loading-spinner">
           <span></span>
         </div>
 
-        <p>{message}</p>
-        <small>Stay ahead. Pay with confidence.</small>
+        <div className="loading-message-wrapper" role="status" aria-live="polite">
+          <h2>{message}</h2>
+
+          <p>
+            Please wait while we securely process your request.
+          </p>
+        </div>
+
+        <span className="loading-security-note">
+          <span>♢</span> Secure authentication by DueWise
+        </span>
+
       </div>
     </div>
   );

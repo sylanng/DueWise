@@ -52,6 +52,37 @@ const paymentConfirmationEmail = (installment) =>
     `
   );
 
+const paymentRecordedEmail = (installment) => {
+  const formatCurrency = (amount) =>
+    Number(amount || 0).toLocaleString('en-PH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const paymentDate = installment.paymentDate
+    ? new Date(installment.paymentDate).toLocaleString('en-PH', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : 'Not available';
+
+  return emailLayout(
+    'Payment Successfully Recorded',
+    `
+      <p>Your installment payment has been successfully recorded in DueWise.</p>
+
+      <p><strong>Provider:</strong> ${escapeHtml(installment.provider)}</p>
+      <p><strong>Purchase:</strong> ${escapeHtml(installment.description || 'Not provided')}</p>
+      <p><strong>Payment Amount:</strong> ₱${formatCurrency(installment.paymentAmount)}</p>
+      <p><strong>Payment Date:</strong> ${escapeHtml(paymentDate)}</p>
+      <p><strong>Remaining Balance:</strong> ₱${formatCurrency(installment.remainingAmount)}</p>
+      <p><strong>Payment Progress:</strong> ${Number(installment.paidPayments || 0)} of ${Number(installment.totalPayments || 0)} payments</p>
+
+      <p>Keep up the good work managing your payments!</p>
+    `
+  );
+};
+
 const newAllowanceEmail = (allowance) =>
   emailLayout('New Allowance Added', `
     <p>A new allowance has been added to your DueWise account.</p>
@@ -102,9 +133,10 @@ const newAllowanceEmail = (allowance) =>
   };
 
   module.exports = {
-  newInstallmentEmail,
-  paymentConfirmationEmail,
-  newAllowanceEmail,
-  newExpenseEmail,
-  paymentReminderEmail,
-};
+    newInstallmentEmail,
+    paymentConfirmationEmail,
+    paymentRecordedEmail,
+    newAllowanceEmail,
+    newExpenseEmail,
+    paymentReminderEmail,
+  };

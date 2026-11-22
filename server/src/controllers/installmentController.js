@@ -1,13 +1,52 @@
 
 const installmentService = require('../services/installmentService');
 const validateInstallment = require('../utils/installmentValidator');
+const { db } = require('../config/firebaseAdmin');
 
 const { sendEmail } = require('../services/emailService');
 
 const {
   newInstallmentEmail,
   paymentConfirmationEmail,
+  paymentRecordedEmail,
 } = require('../services/emailTemplates');
+
+// Save an in-app notification to Firestore
+const createInAppNotification = async ({
+  uid,
+  type,
+  title,
+  message,
+  installmentId,
+  dueDate,
+  paymentAmount,
+  paymentDate,
+  remainingAmount,
+  paidPayments,
+  totalPayments,
+}) => {
+  await db
+    .collection('users')
+    .doc(uid)
+    .collection('notifications')
+    .add({
+      type,
+      title,
+      message,
+      installmentId: installmentId || null,
+      dueDate: dueDate || null,
+
+      paymentAmount: paymentAmount ?? null,
+      paymentDate: paymentDate || null,
+      remainingAmount: remainingAmount ?? null,
+      paidPayments: paidPayments ?? null,
+      totalPayments: totalPayments ?? null,
+
+      read: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+};
 
 // CREATE: Add installment
 const createInstallment = async (req, res) => {
@@ -26,6 +65,15 @@ const createInstallment = async (req, res) => {
       req.user.uid,
       req.body
     );
+
+    await createInAppNotification({
+      uid: req.user.uid,
+      type: 'installment_added',
+      title: 'New Installment Added',
+      message: `${installment.description || installment.provider} has been added to your installments.`,
+      installmentId: installment.id,
+      dueDate: installment.nextDueDate || installment.dueDate,
+    });
 
     await sendEmail({
       to: req.user.email,
@@ -237,13 +285,48 @@ const recordPayment = async (req, res) => {
       });
     }
 
-    if (installment.status === 'paid') {
-      await sendEmail({
-        to: req.user.email,
-        subject: 'Payment Completed - DueWise',
-        html: paymentConfirmationEmail(installment),
-      });
-    }
+    await createInAppNotification({
+  uid: req.user.uid,
+
+  type: installment.status === 'paid'
+    ? 'payment_completed'
+    : 'payment_recorded',
+
+  title: installment.status === 'paid'
+    ? 'Installment Fully Paid'
+    : 'Payment Recorded',
+
+  message: installment.status === 'paid'
+    ? `${installment.description || installment.provider} has been fully paid.`
+    : `Your payment for ${installment.description || installment.provider} has been recorded successfully.`,
+
+  installmentId: installment.id,
+  dueDate: installment.nextDueDate || installment.dueDate,
+
+  paymentAmount: installment.paymentAmount,
+  paymentDate: installment.paymentDate,
+  remainingAmount: installment.remainingAmount,
+  paidPayments: installment.paidPayments,
+  totalPayments: installment.totalPayments,
+});
+
+    // Send an email for every recorded payment
+    const emailPromise = installment.status === 'paid'
+      ? sendEmail({
+          to: req.user.email,
+          subject: 'Payment Completed - DueWise',
+          html: paymentConfirmationEmail(installment),
+        })
+      : sendEmail({
+          to: req.user.email,
+          subject: 'Payment Recorded - DueWise',
+          html: paymentRecordedEmail(installment),
+        });
+
+    // Do not make the payment response wait for Gmail
+    emailPromise.catch((error) => {
+      console.error('Payment notification email failed:', error);
+    });
 
     return res.status(200).json({
       success: true,
