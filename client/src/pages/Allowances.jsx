@@ -50,12 +50,12 @@ function Allowances() {
     errors.amount = 'Amount must be greater than ₱0.';
   }
 
-  if (!form.date) {
-    errors.date = 'Please select the date received.';
+  if (!form.dateReceived) {
+    errors.dateReceived = 'Please select the date received.';
   } else if (
-    Number.isNaN(new Date(`${form.date}T00:00:00`).getTime())
+    Number.isNaN(new Date(`${form.dateReceived}T00:00:00`).getTime())
   ) {
-    errors.date = 'Please select a valid date.';
+    errors.dateReceived = 'Please select a valid date.';
   }
 
   setFieldErrors(errors);
@@ -127,6 +127,11 @@ const loadAllowances = async () => {
   };
 
   const handleDateReceivedChange = (date) => {
+      setFieldErrors((previous) => ({
+        ...previous,
+        dateReceived: '',
+      }));
+
     if (!date) {
       setForm((previous) => ({
         ...previous,
@@ -405,11 +410,11 @@ const filteredAllowances = allowances.filter((item) => {
                   className="duewise-datepicker"
                   calendarClassName="duewise-calendar"
                   showPopperArrow={false}
-                  ariaInvalid={Boolean(fieldErrors.date)}
+                  aria-invalid={Boolean(fieldErrors.dateReceived)}
                   required
                 />
-                {fieldErrors.date && (
-                  <span className="field-error">{fieldErrors.date}</span>
+                {fieldErrors.dateReceived && (
+                  <span className="field-error">{fieldErrors.dateReceived}</span>
                 )}
               </label>
 
