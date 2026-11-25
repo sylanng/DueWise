@@ -24,6 +24,7 @@ function Installments() {
   const [pendingPayment, setPendingPayment] = useState(null);
   const [recordingPayment, setRecordingPayment] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [formStep, setFormStep] = useState(1);
 
   const selectedInstallment = installments.find(
     (item) => item.id === selectedInstallmentId
@@ -152,32 +153,37 @@ const handleDueDateChange = (date) => {
   }));
 };
 
-  const validateForm = () => {
+  const validateForm = (fieldsToValidate) => {
   const errors = {};
+  const shouldValidate = (field) =>
+    !fieldsToValidate || fieldsToValidate.includes(field);
 
-  if (!form.provider.trim()) {
+  if (shouldValidate('provider') && !form.provider.trim()) {
     errors.provider = 'Please enter the BNPL provider.';
   }
 
-  if (!form.description.trim()) {
+  if (shouldValidate('description') && !form.description.trim()) {
     errors.description = 'Please enter the purchase name.';
   }
 
   const totalAmount = Number(form.totalAmount);
 
-  if (form.totalAmount === '') {
+  if (shouldValidate('totalAmount') && form.totalAmount === '') {
     errors.totalAmount = 'Please enter the total purchase amount.';
-  } else if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+  } else if (
+    shouldValidate('totalAmount') &&
+    (!Number.isFinite(totalAmount) || totalAmount <= 0)
+  ) {
     errors.totalAmount = 'Amount must be greater than ₱0.';
   }
 
   const totalPayments = Number(form.totalPayments);
 
-  if (form.totalPayments === '') {
+  if (shouldValidate('totalPayments') && form.totalPayments === '') {
     errors.totalPayments = 'Please enter the number of payments.';
   } else if (
-    !Number.isInteger(totalPayments) ||
-    totalPayments < 1
+    shouldValidate('totalPayments') &&
+    (!Number.isInteger(totalPayments) || totalPayments < 1)
   ) {
     errors.totalPayments = 'Enter a valid whole number of payments.';
   }
@@ -185,21 +191,25 @@ const handleDueDateChange = (date) => {
   const amountPerPayment = Number(form.amountPerPayment);
 
   if (
-    !form.amountPerPayment ||
-    !Number.isFinite(amountPerPayment) ||
-    amountPerPayment <= 0
+    shouldValidate('amountPerPayment') &&
+    (!form.amountPerPayment ||
+      !Number.isFinite(amountPerPayment) ||
+      amountPerPayment <= 0)
   ) {
     errors.amountPerPayment =
       'Unable to calculate the payment amount. Check your total amount and number of payments.';
   }
 
-  if (!form.paymentFrequency) {
+  if (shouldValidate('paymentFrequency') && !form.paymentFrequency) {
     errors.paymentFrequency = 'Please select a payment frequency.';
   }
 
-  if (!form.dueDate) {
+  if (shouldValidate('dueDate') && !form.dueDate) {
     errors.dueDate = 'Please select the next due date.';
-  } else if (Number.isNaN(new Date(`${form.dueDate}T00:00:00`).getTime())) {
+  } else if (
+    shouldValidate('dueDate') &&
+    Number.isNaN(new Date(`${form.dueDate}T00:00:00`).getTime())
+  ) {
     errors.dueDate = 'Please select a valid due date.';
   }
 
@@ -208,12 +218,30 @@ const handleDueDateChange = (date) => {
   return Object.keys(errors).length === 0;
 };
 
+  const handleContinue = () => {
+    const purchaseFields = [
+      'provider',
+      'description',
+      'totalAmount',
+      'amountPerPayment',
+      'totalPayments',
+    ];
+
+    if (validateForm(purchaseFields)) {
+      setFormStep(2);
+    }
+  };
 
   // Create or update an installment
   
   // Show confirmation before saving
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    if (!editingId && formStep === 1) {
+      handleContinue();
+      return;
+    }
 
     if (!validateForm()) {
       return;
@@ -264,6 +292,7 @@ const handleDueDateChange = (date) => {
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
+      setFormStep(1);
       setShowConfirm(false);
     } catch (err) {
       setError(err.message || 'Failed to save installment.');
@@ -332,6 +361,7 @@ const handleRecordPayment = (item) => {
     setEditingId(item.id);
     setOriginalStatus(item.status || 'unpaid');
     setShowForm(true);
+    setFormStep(1);
     setError('');
     setFieldErrors({});
   };
@@ -363,6 +393,7 @@ const handleRecordPayment = (item) => {
     setEditingId(null);
     setOriginalStatus('unpaid');
     setShowForm(false);
+    setFormStep(1);
     setError('');
     setOriginalStatus('unpaid');
     setFieldErrors({});
@@ -500,8 +531,10 @@ const handleRecordPayment = (item) => {
           onClick={() => {
             setForm(emptyForm);
             setEditingId(null);
+            setFormStep(1);
             setShowForm(true);
             setError('');
+            setFieldErrors({});
           }}
         >
           + Add Installment
@@ -563,7 +596,13 @@ const handleRecordPayment = (item) => {
           <h3 id="installment-modal-title">
             {editingId ? 'Edit Installment' : 'Add New Installment'}
           </h3>
-          <p>Enter your purchase and payment details.</p>
+          <p>
+            {editingId
+              ? 'Update your purchase and payment details.'
+              : formStep === 1
+                ? 'Start with the purchase details.'
+                : 'Set the payment schedule and review it.'}
+          </p>
         </div>
 
         <button
@@ -577,8 +616,28 @@ const handleRecordPayment = (item) => {
         </button>
       </div>
 
+      {!editingId && (
+        <ol className="installment-stepper" aria-label="Installment form progress">
+          <li
+            className={formStep === 1 ? 'active' : 'complete'}
+            aria-current={formStep === 1 ? 'step' : undefined}
+          >
+            <span>1</span>
+            <span>Purchase</span>
+          </li>
+          <li
+            className={formStep === 2 ? 'active' : ''}
+            aria-current={formStep === 2 ? 'step' : undefined}
+          >
+            <span>2</span>
+            <span>Schedule</span>
+          </li>
+        </ol>
+      )}
 
-          <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} noValidate>
+        {(editingId || formStep === 1) && (
+          <>
             <div className="form-grid">
               <label>
                 BNPL Provider
@@ -630,24 +689,26 @@ const handleRecordPayment = (item) => {
                 )}
               </label>
 
-              <label>
-                Amount Per Payment (₱)
-                <input
-                  type="number"
-                  name="amountPerPayment"
-                  value={form.amountPerPayment}
-                  onChange={handleChange}
-                  readOnly
-                  disabled={hasRecordedPayments}
-                  min="0.01"
-                  step="0.01"
-                  aria-invalid={Boolean(fieldErrors.amountPerPayment)}
-                  required
-                />
-                {fieldErrors.amountPerPayment && (
-                  <span className="field-error">{fieldErrors.amountPerPayment}</span>
-                )}
-              </label>
+              {editingId && (
+                <label>
+                  Amount Per Payment (₱)
+                  <input
+                    type="number"
+                    name="amountPerPayment"
+                    value={form.amountPerPayment}
+                    onChange={handleChange}
+                    readOnly
+                    disabled={hasRecordedPayments}
+                    min="0.01"
+                    step="0.01"
+                    aria-invalid={Boolean(fieldErrors.amountPerPayment)}
+                    required
+                  />
+                  {fieldErrors.amountPerPayment && (
+                    <span className="field-error">{fieldErrors.amountPerPayment}</span>
+                  )}
+                </label>
+              )}
 
               <label>
                 Total Number of Payments
@@ -667,9 +728,92 @@ const handleRecordPayment = (item) => {
                 )}
               </label>
 
+              {editingId && (
+                <label>
+                  Payment Frequency
+                  <div className="payment-frequency-control">
+                    <CustomDropdown
+                      value={form.paymentFrequency}
+                      options={[
+                        { value: 'weekly', label: 'Weekly' },
+                        { value: 'biweekly', label: 'Every two weeks' },
+                        { value: 'monthly', label: 'Monthly' },
+                      ]}
+                      onChange={(value) => {
+                        setForm((previous) => ({
+                          ...previous,
+                          paymentFrequency: value,
+                        }));
+                        setFieldErrors((previous) => ({
+                          ...previous,
+                          paymentFrequency: '',
+                        }));
+                      }}
+                    />
+                  </div>
+                  {fieldErrors.paymentFrequency && (
+                    <span className="field-error">{fieldErrors.paymentFrequency}</span>
+                  )}
+                </label>
+              )}
+
+              {editingId && (
+                <label>
+                  Next Due Date
+                  <DatePicker
+                    selected={
+                      form.dueDate
+                        ? new Date(`${form.dueDate}T00:00:00`)
+                        : null
+                    }
+                    onChange={handleDueDateChange}
+                    dateFormat="MM/dd/yyyy"
+                    placeholderText="Select next due date"
+                    className="duewise-datepicker"
+                    calendarClassName="duewise-calendar"
+                    popperClassName="duewise-datepicker-popper"
+                    popperPlacement="bottom-start"
+                    portalId="root"
+                    showPopperArrow={false}
+                    aria-invalid={Boolean(fieldErrors.dueDate)}
+                    required
+                  />
+                  {fieldErrors.dueDate && (
+                    <span className="field-error">{fieldErrors.dueDate}</span>
+                  )}
+                </label>
+              )}
+
+              {editingId && (
+                <label>
+                  Payment Status
+                  <input
+                    type="text"
+                    value={`${getStatusLabel(form.status)} (${form.paidPayments}/${form.totalPayments} payments)`}
+                    disabled
+                  />
+                </label>
+              )}
+            </div>
+
+            {!editingId && (
+              <div className="installment-payment-preview">
+                <span>Estimated payment per installment</span>
+                <strong>
+                  {form.amountPerPayment
+                    ? formatCurrency(form.amountPerPayment)
+                    : 'Enter an amount and payment count'}
+                </strong>
+              </div>
+            )}
+          </>
+        )}
+
+        {(!editingId && formStep === 2) && (
+          <>
+            <div className="form-grid">
               <label>
                 Payment Frequency
-
                 <div className="payment-frequency-control">
                   <CustomDropdown
                     value={form.paymentFrequency}
@@ -683,7 +827,6 @@ const handleRecordPayment = (item) => {
                         ...previous,
                         paymentFrequency: value,
                       }));
-
                       setFieldErrors((previous) => ({
                         ...previous,
                         paymentFrequency: '',
@@ -697,7 +840,7 @@ const handleRecordPayment = (item) => {
               </label>
 
               <label>
-                Next Due Date               
+                Next Due Date
                 <DatePicker
                   selected={
                     form.dueDate
@@ -720,18 +863,49 @@ const handleRecordPayment = (item) => {
                   <span className="field-error">{fieldErrors.dueDate}</span>
                 )}
               </label>
-
-              <label>
-                Payment Status
-                <input
-                  type="text"
-                  value={`${getStatusLabel(form.status)} (${form.paidPayments}/${form.totalPayments} payments)`}
-                  disabled
-                />
-              </label>
             </div>
 
-            <div className="form-actions">
+            <div className="installment-schedule-summary">
+              <div>
+                <span>Purchase</span>
+                <strong>{form.description || '—'}</strong>
+              </div>
+              <div>
+                <span>Total purchase</span>
+                <strong>{formatCurrency(form.totalAmount)}</strong>
+              </div>
+              <div>
+                <span>Each payment</span>
+                <strong>{formatCurrency(form.amountPerPayment)}</strong>
+              </div>
+              <div>
+                <span>Schedule</span>
+                <strong>
+                  {form.totalPayments} payments ·{' '}
+                  {form.paymentFrequency === 'biweekly'
+                    ? 'Every two weeks'
+                    : form.paymentFrequency[0].toUpperCase() +
+                      form.paymentFrequency.slice(1)}
+                </strong>
+              </div>
+              <div>
+                <span>First due date</span>
+                <strong>
+                  {form.dueDate
+                    ? new Date(`${form.dueDate}T00:00:00`).toLocaleDateString(
+                        'en-PH',
+                        { month: 'short', day: 'numeric', year: 'numeric' }
+                      )
+                    : 'Choose a date'}
+                </strong>
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="form-actions">
+          {editingId ? (
+            <>
               <button
                 type="button"
                 className="secondary-button"
@@ -740,23 +914,57 @@ const handleRecordPayment = (item) => {
               >
                 Cancel
               </button>
-
               <button
                 type="submit"
                 className="primary-button"
                 disabled={saving}
               >
-                {saving
-                  ? 'Saving...'
-                  : editingId
-                    ? 'Save Changes'
-                    : 'Add Installment'}
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
-            </div>
-            </form>
-          </div>
+            </>
+          ) : formStep === 1 ? (
+            <>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleCancel}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleContinue}
+                disabled={saving}
+              >
+                Continue
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setFormStep(1)}
+                disabled={saving}
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={saving}
+              >
+                Add Installment
+              </button>
+            </>
+          )}
         </div>
-      )}
+      </form>
+    </div>
+  </div>
+)}
 
       
       <div className="installment-record-layout">
