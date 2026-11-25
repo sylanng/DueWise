@@ -1413,7 +1413,7 @@ td:first-child {
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 100000;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12448,6 +12448,145 @@ body.dark-mode .projection-page .table-wrapper tbody tr:hover small,
 
 .account-security-card .password-toggle svg {
   display: block;
+}
+
+.installment-stepper {
+  display: flex;
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.installment-stepper li {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 9px;
+  color: #7b8798;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.installment-stepper li > span:first-child {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 1px solid #d7dce5;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #7b8798;
+}
+
+.installment-stepper li.active,
+.installment-stepper li.complete {
+  color: #5542d5;
+}
+
+.installment-stepper li.active > span:first-child,
+.installment-stepper li.complete > span:first-child {
+  border-color: #6555e8;
+  background: #6555e8;
+  color: #ffffff;
+}
+
+.installment-payment-preview,
+.installment-schedule-summary {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #e5e7f0;
+  border-radius: 12px;
+  background: #f8f9fc;
+}
+
+.installment-payment-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.installment-payment-preview span,
+.installment-schedule-summary span {
+  color: #718096;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.installment-payment-preview strong {
+  color: #4432c4;
+  font-size: 18px;
+  text-align: right;
+}
+
+.installment-schedule-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.installment-schedule-summary > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.installment-schedule-summary strong {
+  overflow-wrap: anywhere;
+  color: #26364f;
+  font-size: 13px;
+}
+
+.installment-locked-terms-note {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #dce5f5;
+  border-radius: 9px;
+  background: #f3f7ff;
+  color: #53647d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-container[data-theme="dark"] .installment-payment-preview,
+.app-container[data-theme="dark"] .installment-schedule-summary {
+  border-color: var(--dw-border);
+  background: #253247;
+}
+
+.app-container[data-theme="dark"] .installment-locked-terms-note {
+  border-color: var(--dw-border);
+  background: #253247;
+  color: var(--dw-muted);
+}
+
+.app-container[data-theme="dark"] .installment-payment-preview span,
+.app-container[data-theme="dark"] .installment-schedule-summary span {
+  color: var(--dw-muted);
+}
+
+.app-container[data-theme="dark"] .installment-payment-preview strong,
+.app-container[data-theme="dark"] .installment-schedule-summary strong {
+  color: var(--dw-text);
+}
+
+@media (max-width: 600px) {
+  .installment-payment-preview {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .installment-payment-preview strong {
+    text-align: left;
+  }
+
+  .installment-schedule-summary {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Fix: vertically and horizontally center Google Security button */
