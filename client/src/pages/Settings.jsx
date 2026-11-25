@@ -28,7 +28,7 @@ const getLocalDateString = () => {
   return `${year}-${month}-${day}`;
 };
 
-function Settings() {
+function Settings({ financialOnly = false }) {
   const { user, updateUserProfile, refreshUser } = useAuth();
 
   const [settings, setSettings] = useState({
@@ -248,8 +248,9 @@ const handleSubmit = async (event, confirmedNameChange = false) => {
   // Validate Full Name and Email together
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const nameIsInvalid = !fullName;
-  const emailIsInvalid = !email || !emailPattern.test(email);
+  const nameIsInvalid = !financialOnly && !fullName;
+  const emailIsInvalid =
+    !financialOnly && (!email || !emailPattern.test(email));
 
   if (nameIsInvalid) {
     setError('Please enter your full name.');
@@ -266,17 +267,20 @@ const handleSubmit = async (event, confirmedNameChange = false) => {
   
   // Financial Preferences validation
 
-  const openingBalanceIsInvalid =
+  const openingBalanceIsInvalid = financialOnly && (
     !openingBalanceInput ||
     !Number.isFinite(openingBalance) ||
-    openingBalance < 0;
+    openingBalance < 0
+  );
 
-  const reserveLimitIsInvalid =
+  const reserveLimitIsInvalid = financialOnly && (
     !reserveLimitInput ||
     !Number.isFinite(reserveLimit) ||
-    reserveLimit < 0;
+    reserveLimit < 0
+  );
 
-  const trackingDateIsInvalid = !settings.trackingStartDate;
+  const trackingDateIsInvalid =
+    financialOnly && !settings.trackingStartDate;
 
   if (openingBalanceIsInvalid) {
     setOpeningBalanceError(
@@ -307,8 +311,8 @@ if (
   return;
 }
 
-  // Confirm all settings changes before saving
-if (!confirmedNameChange) {
+  // Confirm account profile changes before saving.
+if (!financialOnly && !confirmedNameChange) {
   setShowNameConfirmation(true);
   return;
 }
@@ -319,31 +323,29 @@ if (!confirmedNameChange) {
     setError('');
     setEmailError('');
 
-    const payload = {
-      fullName,
-      email,
-      openingBalance,
-      reserveLimit,
-      currency: settings.currency,
-      emailNotifications: settings.emailNotifications,
-      dueDateReminders: settings.dueDateReminders,
-      lowBalanceAlerts: settings.lowBalanceAlerts,
-      trackingStartDate: settings.trackingStartDate,
-    };
+    const payload = financialOnly
+      ? {
+          openingBalance,
+          reserveLimit,
+          currency: settings.currency,
+          trackingStartDate: settings.trackingStartDate,
+        }
+      : { fullName, email };
 
     const response = await apiRequest('/api/settings', {
       method: 'PUT',
       body: JSON.stringify(payload),
     });
 
-    // Refresh Firebase user information
-    try {
-      await refreshUser();
-    } catch (refreshError) {
-      console.error(
-        'Unable to refresh user profile:',
-        refreshError
-      );
+    if (!financialOnly) {
+      try {
+        await refreshUser();
+      } catch (refreshError) {
+        console.error(
+          'Unable to refresh user profile:',
+          refreshError
+        );
+      }
     }
 
     if (response.data) {
@@ -505,7 +507,7 @@ const handlePictureUpload = async () => {
   if (loading) {
     return (
       <div className="settings-page">
-        <h2>Settings</h2>
+        <h2>{financialOnly ? 'Financial Preferences' : 'Settings'}</h2>
         <p>Loading your settings...</p>
       </div>
     );
@@ -515,8 +517,12 @@ const handlePictureUpload = async () => {
     <div className="settings-page">
       <div className="module-heading">
         <div>
-          <h2>Settings</h2>
-          <p>Manage your profile and financial preferences.</p>
+          <h2>{financialOnly ? 'Financial Preferences' : 'Settings'}</h2>
+          <p>
+            {financialOnly
+              ? 'Set your starting balance and minimum reserve amount.'
+              : 'Manage your profile, account security, and notifications.'}
+          </p>
         </div>
       </div>
 
@@ -537,6 +543,8 @@ const handlePictureUpload = async () => {
     
       {!loadError && (
       <form onSubmit={handleSubmit} noValidate>
+        {!financialOnly && (
+          <>
         <div className="form-card settings-card profile-information-card">
           <h3>Profile Information</h3>
           <p className="settings-description">
@@ -849,7 +857,10 @@ const handlePictureUpload = async () => {
             </div>
           )}
         </div>
+          </>
+        )}
 
+        {financialOnly && (
         <div className="form-card settings-card">
           <h3>Financial Preferences</h3>
           <p className="settings-description">
@@ -965,7 +976,9 @@ const handlePictureUpload = async () => {
             </button>
           </div>
         </div>
+        )}
 
+        {!financialOnly && (
         <div className="form-card settings-card">
           <h3>Notification Preferences</h3>
           <p className="settings-description">
@@ -1036,6 +1049,7 @@ const handlePictureUpload = async () => {
             )}
           </div>
         </div>
+        )}
       </form>
       )}
 
