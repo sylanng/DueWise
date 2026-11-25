@@ -62,6 +62,7 @@ const [notificationDetailError, setNotificationDetailError] = useState('');
   ).length;
   const notificationMenuRef = useRef(null);
   const profileMenuRef = useRef(null);
+  const sidebarAccountRef = useRef(null);
   // Fetch notifications from the backend
 const loadNotifications = async () => {
   try {
@@ -394,7 +395,8 @@ useEffect(() => {
       notificationMenuRef.current?.contains(event.target);
 
     const clickedInsideProfile =
-      profileMenuRef.current?.contains(event.target);
+      profileMenuRef.current?.contains(event.target) ||
+      sidebarAccountRef.current?.contains(event.target);
 
     if (!clickedInsideNotification) {
       setNotificationMenuOpen(false);
@@ -697,7 +699,18 @@ const NotificationIcon = notificationVisual.icon;
           ))}
         </nav>
 
-        <div className="sidebar-bottom">
+        <button
+          type="button"
+          className="sidebar-bottom"
+          ref={sidebarAccountRef}
+          onClick={() => {
+            setProfileMenuOpen((previous) => !previous);
+            setNotificationMenuOpen(false);
+          }}
+          aria-label="Open account menu"
+          aria-haspopup="true"
+          aria-expanded={profileMenuOpen}
+        >
           <div className="profile-avatar">
             {profileImage ? (
               <img src={profileImage} alt="Profile" />
@@ -710,7 +723,7 @@ const NotificationIcon = notificationVisual.icon;
             <strong>{user.displayName || 'My Account'}</strong>
             <span>{user.email}</span>
           </div>
-        </div>
+        </button>
       </aside>
 
       <main className="main-content">

@@ -199,9 +199,26 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   margin-top: auto;
   padding: 20px 8px 0;
+  border: 0;
   border-top: 1px solid #D5C8E8;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sidebar-bottom:hover {
+  background: rgba(119, 91, 166, 0.12);
+}
+
+.sidebar-bottom:focus-visible {
+  outline: 2px solid #6952D9;
+  outline-offset: 2px;
 }
 
 /* DARK MODE NAVIGATION */
@@ -222,6 +239,10 @@ button {
 
 .dark-mode .sidebar-bottom {
   border-top: 1px solid #493B5E;
+}
+
+[data-theme="dark"] .sidebar-bottom:hover {
+  background: rgba(204, 184, 239, 0.12);
 }
 
 .profile-avatar,
