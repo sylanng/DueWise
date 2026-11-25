@@ -1,3 +1,7 @@
+require('dotenv').config({
+  path: require('path').resolve(__dirname, '../../.env'),
+});
+
 const { Resend } = require('resend');
 
 const sendEmail = async ({ to, subject, html }) => {

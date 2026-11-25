@@ -47,16 +47,14 @@ button {
 
 /* SIDEBAR */
 
-.sidebar {
-  width: 255px;
-  min-height: 100vh;
-  background: var(--dw-navy);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 28px 18px;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  color: white;
+@media (max-width: 760px) {
+ .app-container .sidebar {
+    width: 64px;
+    min-width: 64px;
+    flex: 0 0 64px;
+    box-sizing: border-box;
+    padding: 22px 7px;
+  }
 }
 
 .brand {
@@ -244,14 +242,24 @@ button {
   gap: 3px;
 }
 
+
 .profile-info strong {
   font-size: 12px;
-  color: white;
+  color: #493765;
 }
 
 .profile-info span {
-  color: #B8C5D8;
+  color: #65527F;
   font-size: 10px;
+}
+
+/* Dark mode sidebar profile text */
+[data-theme="dark"] .profile-info strong {
+  color: #F4EEFF;
+}
+
+[data-theme="dark"] .profile-info span {
+  color: #C9BCE0;
 }
 
 /* MAIN CONTENT */
@@ -1330,6 +1338,8 @@ td:first-child {
 
 .settings-page {
   margin-top: 30px;
+  padding-top: 24px;
+  box-sizing: border-box;
 }
 
 .settings-card {
@@ -5868,36 +5878,39 @@ td:first-child {
   font-weight: 600;
 }
 
-/* DueWise premium loading screen */
+
+
+/* DueWise premium lavender loading screen */
 .duewise-loading-screen {
   min-height: 100vh;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+
   background:
-  radial-gradient(
-    ellipse at 50% 42%,
-    rgba(255, 255, 255, 0.95),
-    rgba(239, 232, 255, 0.75) 35%,
-    transparent 70%
-  ),
-  radial-gradient(
-    circle at 15% 15%,
-    rgba(183, 158, 255, 0.35),
-    transparent 40%
-  ),
-  radial-gradient(
-    circle at 90% 85%,
-    rgba(167, 139, 250, 0.3),
-    transparent 40%
-  ),
-  linear-gradient(
-    135deg,
-    #292044,
-    #19172e 55%,
-    #302052
-  );
+    radial-gradient(
+      ellipse at 50% 42%,
+      rgba(255, 255, 255, 0.65),
+      rgba(239, 232, 255, 0.45) 45%,
+      transparent 75%
+    ),
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(183, 158, 255, 0.35),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 85%,
+      rgba(167, 139, 250, 0.3),
+      transparent 40%
+    ),
+    linear-gradient(
+      135deg,
+      #eee5fb,
+      #e9def9 55%,
+      #dfd0f4
+    ) !important;
 }
 
 .duewise-loading-content {
@@ -5908,55 +5921,34 @@ td:first-child {
   text-align: center;
   gap: 25px;
   padding: 30px;
+  animation: duewise-loading-enter 0.9s ease-out both;
+  transform-origin: center;
 }
 
+/* Logo positioning */
 .duewise-loading-content .duewise-logo {
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
-/* Premium glowing DueWise logo */
+/* Larger logo without the surrounding box */
 .duewise-loading-content .duewise-logo-icon {
-  width: 190px !important;
-  height: 190px !important;
-  padding: 16px;
+  width: 240px !important;
+  height: 240px !important;
+  padding: 0 !important;
   object-fit: contain;
-  border-radius: 32px;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.16),
-    rgba(157, 126, 255, 0.12)
-  );
-
-  border: 1px solid rgba(205, 187, 255, 0.35);
-
-  box-shadow:
-    0 0 25px rgba(151, 112, 255, 0.35),
-    0 0 65px rgba(126, 86, 230, 0.25),
-    0 18px 45px rgba(0, 0, 0, 0.3);
-
-  filter: drop-shadow(0 0 12px rgba(176, 145, 255, 0.65));
+  filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.35));
 
   animation: duewise-logo-float 3s ease-in-out infinite;
-
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.35),
-    rgba(225, 215, 255, 0.22)
-  );
-
-  border: 1px solid rgba(255, 255, 255, 0.75);
-
-  box-shadow:
-    0 0 25px rgba(220, 204, 255, 0.8),
-    0 0 65px rgba(174, 140, 255, 0.55),
-    0 15px 40px rgba(20, 12, 45, 0.25);
 }
 
-
-
+/* Logo floating animation */
 @keyframes duewise-logo-float {
   0%, 100% {
     transform: translateY(0) scale(1);
@@ -5967,51 +5959,55 @@ td:first-child {
   }
 }
 
+/* DueWise brand name */
 .duewise-loading-content .duewise-logo-text {
   align-items: center;
   gap: 6px;
 }
 
 .duewise-loading-content .duewise-logo-text span {
-  color: #ffffff;
-  font-size: 34px;
+  color: #493765 !important;
+  font-size: 38px !important;
   font-weight: 800;
   letter-spacing: -1px;
-  text-shadow: 0 0 18px rgba(174, 147, 255, 0.45);
+  text-shadow: 0 2px 12px rgba(126, 86, 190, 0.15);
 }
 
 .duewise-loading-content .duewise-logo-text small {
-  color: #c2b5ed;
-  font-size: 9px;
+  color: #806b9e !important;
+  font-size: 10px;
   letter-spacing: 1.5px;
 }
 
+/* Loading spinner */
 .duewise-loading-spinner {
-  width: 42px;
-  height: 42px;
-  border: 4px solid rgba(183, 161, 255, 0.2);
+  width: 46px;
+  height: 46px;
+  border: 4px solid rgba(126, 86, 190, 0.16);
   border-top-color: #a78bfa;
   border-right-color: #7654df;
   border-radius: 50%;
   animation: duewise-spin 0.9s linear infinite;
 }
 
-.duewise-loading-content p {
-  margin: 0;
-  color: #eee9ff;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.duewise-loading-content > small {
-  color: #aaa0ca;
-  font-size: 11px;
-}
-
 @keyframes duewise-spin {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Loading message */
+.duewise-loading-content p {
+  margin: 0;
+  color: #493765 !important;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Tagline */
+.duewise-loading-content > small {
+  color: #806b9e !important;
+  font-size: 12px;
 }
 
 /* DueWise authentication success message */
@@ -6064,7 +6060,12 @@ td:first-child {
       rgba(91, 54, 190, 0.24),
       transparent 38%
     ),
-    linear-gradient(135deg, #211747, #101426 55%, #171039);
+    linear-gradient(
+      135deg,
+      #f7f3ff,
+      #eee6fc 55%,
+      #e7dcfa
+    ) !important;
 }
 
 .duewise-loading-screen::before,
@@ -7216,4 +7217,5226 @@ input[type="date"]:focus {
 
 [data-theme="dark"] .react-datepicker__day--disabled {
   color: #625773 !important;
+}
+
+/* DASHBOARD PAYMENT CALENDAR */
+.dashboard-calendar {
+  margin-top: 24px;
+}
+
+.calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-navigation strong {
+  color: var(--text-primary);
+  min-width: 140px;
+  text-align: center;
+}
+
+.calendar-nav-button {
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.calendar-day {
+  min-height: 65px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 4px;
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  border-color: #9b7bd3;
+  background: rgba(155, 123, 211, 0.08);
+}
+
+.calendar-day.outside-month {
+  opacity: 0.35;
+}
+
+.calendar-day.today {
+  border: 1px solid #9b7bd3;
+}
+
+.calendar-day.selected {
+  background: #eee6fa;
+  border: 2px solid #8763bd;
+  color: #493765;
+  font-weight: 700;
+}
+
+.calendar-event-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.calendar-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.calendar-dot.paid {
+  background: #36a879;
+}
+
+.calendar-dot.upcoming {
+  background: #8b6ac7;
+}
+
+.calendar-dot.overdue {
+  background: #e16b72;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.calendar-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.selected-day-details {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 18px;
+}
+
+.selected-day-details h4 {
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+
+.calendar-payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-payment-item p {
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.calendar-payment-item > div:last-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.calendar-payment-item > div:last-child strong {
+  color: var(--text-primary);
+}
+
+/* DARK MODE */
+[data-theme="dark"] .calendar-day.selected {
+  background: #493765;
+  border-color: #b69add;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .calendar-day.today {
+  border-color: #b69add;
+}
+
+[data-theme="dark"] .calendar-nav-button {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .calendar-day {
+    min-height: 52px;
+    padding: 7px 2px;
+    font-size: 12px;
+  }
+
+  .calendar-navigation {
+    gap: 6px;
+  }
+
+  .calendar-navigation strong {
+    min-width: auto;
+    font-size: 13px;
+  }
+
+  .calendar-payment-item {
+    align-items: flex-start;
+  }
+}
+
+/* CALENDAR TODAY BUTTON */
+.calendar-today-button {
+  border: 1px solid #9b7bd3;
+  background: #eee6fa;
+  color: #493765;
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-today-button:hover {
+  background: #8763bd;
+  color: #ffffff;
+  border-color: #8763bd;
+  transform: translateY(-1px);
+}
+
+/* CALENDAR DETAILS POPUP */
+.calendar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(25, 18, 38, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.calendar-details-modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #ffffff;
+  color: #493765;
+  border: 1px solid #e5d9f5;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 18px 50px rgba(35, 20, 55, 0.25);
+  animation: calendarModalAppear 0.2s ease-out;
+  opacity: 1;
+}
+
+.calendar-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.calendar-modal-header h3 {
+  color: #493765;
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.calendar-modal-header p {
+  color: #75658c;
+  margin: 0;
+  font-size: 13px;
+}
+
+.calendar-details-modal .empty-message {
+  color: #75658c;
+  font-size: 14px;
+  padding: 18px 0;
+}
+
+.calendar-details-modal .calendar-payment-item strong {
+  color: #493765;
+}
+
+.calendar-details-modal .calendar-payment-item p {
+  color: #75658c;
+}
+
+[data-theme="dark"] .calendar-details-modal {
+  background: #211a2b;
+  color: #f4eeff;
+  border-color: #514064;
+}
+
+[data-theme="dark"] .calendar-modal-header h3,
+[data-theme="dark"] .calendar-details-modal .calendar-payment-item strong {
+  color: #f4eeff;
+}
+
+[data-theme="dark"] .calendar-modal-header p,
+[data-theme="dark"] .calendar-details-modal .empty-message,
+[data-theme="dark"] .calendar-details-modal .calendar-payment-item p {
+  color: #c9bce0;
+}
+
+.calendar-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #eee6fa;
+  color: #493765;
+  font-size: 23px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.calendar-modal-close:hover {
+  background: #8763bd;
+  color: #fff;
+}
+
+.calendar-details-modal .calendar-payment-item:first-of-type {
+  border-top: 1px solid var(--border-color);
+}
+
+@keyframes calendarModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* DARK MODE */
+[data-theme="dark"] .calendar-today-button {
+  background: #493765;
+  color: #f4eeff;
+  border-color: #8f72b8;
+}
+
+[data-theme="dark"] .calendar-today-button:hover {
+  background: #7655a5;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .calendar-modal-close {
+  background: #493765;
+  color: #f4eeff;
+}
+
+[data-theme="dark"] .calendar-modal-close:hover {
+  background: #7655a5;
+  color: #ffffff;
+}
+
+/* PURCHASE SIMULATOR RESULTS MODAL */
+.simulator-results-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(25, 18, 38, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.simulator-results-modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e5d9f5;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 18px 50px rgba(35, 20, 55, 0.25);
+  animation: calendarModalAppear 0.2s ease-out;
+}
+
+.simulator-results-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  color: #493765;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.simulator-results-close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: #eee6fa;
+  color: #493765;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.simulator-results-close:hover {
+  background: #8763bd;
+  color: #ffffff;
+}
+
+/* Remove extra card styling inside the modal */
+.simulator-results-modal .form-card {
+  width: 100%;
+  margin: 0;
+}
+
+/* DARK MODE */
+[data-theme="dark"] .simulator-results-modal {
+  background: #211a2b;
+  border-color: #514064;
+}
+
+[data-theme="dark"] .simulator-results-modal-header {
+  color: #f4eeff;
+}
+
+[data-theme="dark"] .simulator-results-close {
+  background: #493765;
+  color: #f4eeff;
+}
+
+[data-theme="dark"] .simulator-results-close:hover {
+  background: #7655a5;
+  color: #ffffff;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .simulator-results-modal {
+    padding: 16px;
+    max-height: 92vh;
+  }
+}
+
+/* ENHANCED INSUFFICIENT FUNDS WARNING */
+.simulator-results-modal .financial-status.danger {
+  background: #fce4e4;
+  border: 1px solid #f2aaaa;
+  color: #8b1e2d;
+}
+
+.simulator-results-modal .financial-status.danger strong {
+  color: #8b1e2d;
+  font-weight: 700;
+}
+
+.simulator-results-modal .financial-status.danger span {
+  color: #70202b;
+}
+
+/* DARK MODE */
+[data-theme="dark"] .simulator-results-modal .financial-status.danger {
+  background: #54252d;
+  border-color: #a94b58;
+  color: #ffe4e7;
+}
+
+[data-theme="dark"] .simulator-results-modal .financial-status.danger strong,
+[data-theme="dark"] .simulator-results-modal .financial-status.danger span {
+  color: #ffe4e7;
+}
+
+/* PURCHASE SIMULATOR — PAYMENT STATUS COLORS */
+
+/* Healthy — Green */
+.simulator-schedule-card .status-paid {
+  display: inline-block;
+  color: #16794b;
+  background: #e1f5e9;
+  border: 1px solid #a8dfbd;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Below Reserve — Amber */
+.simulator-schedule-card .status-warning {
+  display: inline-block;
+  color: #946000;
+  background: #fff2cc;
+  border: 1px solid #f0d78c;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Insufficient — Red */
+.simulator-schedule-card .status-danger {
+  display: inline-block;
+  color: #a12635;
+  background: #fce4e4;
+  border: 1px solid #f2aaaa;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* DARK MODE */
+[data-theme="dark"] .simulator-schedule-card .status-paid {
+  color: #a8edc2;
+  background: #174b35;
+  border-color: #287c53;
+}
+
+[data-theme="dark"] .simulator-schedule-card .status-warning {
+  color: #ffe29a;
+  background: #59451b;
+  border-color: #92702c;
+}
+
+[data-theme="dark"] .simulator-schedule-card .status-danger {
+  color: #ffc0c7;
+  background: #54252d;
+  border-color: #a94b58;
+}
+
+/* PREMIUM PURCHASE SIMULATOR DISCLAIMER */
+.simulator-results-modal .simulator-disclaimer {
+  margin-top: 24px;
+  padding: 20px 22px;
+  background: #f2ecfb;
+  border: 1px solid #dfd0f3;
+  border-left: 4px solid #9270c5;
+  border-radius: 12px;
+  color: #55436f;
+  font-size: 13px;
+  line-height: 1.8;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+  box-shadow: 0 3px 12px rgba(73, 55, 101, 0.05);
+}
+
+/* DARK MODE */
+[data-theme="dark"] .simulator-results-modal .simulator-disclaimer {
+  background: #29213a;
+  border-color: #514064;
+  border-left-color: #ad8cdd;
+  color: #ded2f0;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* PURCHASE SIMULATOR — SCHEDULE SPACING */
+.simulator-results-modal .simulator-schedule-card {
+  margin-top: 24px;
+  padding-top: 20px;
+}
+
+.simulator-results-modal .simulator-schedule-card h3 {
+  margin: 0 0 12px;
+  padding-top: 4px;
+  line-height: 1.4;
+}
+
+.simulator-results-modal .simulator-schedule-card .projection-description {
+  margin: 0 0 22px;
+  line-height: 1.6;
+}
+
+.simulator-results-modal .simulator-schedule-card .table-wrapper {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.simulator-results-modal .simulator-schedule-card table {
+  margin-top: 0;
+}
+
+.simulator-results-modal .simulator-schedule-card th {
+  padding: 14px 12px;
+}
+
+.simulator-results-modal .simulator-schedule-card td {
+  padding: 18px 12px;
+}
+
+/* PREMIUM FINANCIAL BREAKDOWN */
+.simulator-results-modal .projection-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 20px;
+  padding: 8px 18px;
+  background: #f8f5fc;
+  border: 1px solid #e8def4;
+  border-radius: 14px;
+}
+
+/* Individual breakdown rows */
+.simulator-results-modal .projection-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 17px 2px;
+  border-bottom: 1px solid #e8def4;
+}
+
+.simulator-results-modal .projection-breakdown > div:last-child {
+  border-bottom: none;
+}
+
+.simulator-results-modal .projection-breakdown span {
+  color: #746486;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.simulator-results-modal .projection-breakdown strong {
+  color: #493765;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Highlight balance after first payment */
+.simulator-results-modal .projection-breakdown .projection-total {
+  background: #eee6fa;
+  border: 1px solid #d8c6ef;
+  border-radius: 10px;
+  margin: 8px -8px;
+  padding: 18px 12px;
+}
+
+.simulator-results-modal .projection-breakdown .projection-total span {
+  color: #594276;
+  font-weight: 700;
+}
+
+.simulator-results-modal .projection-breakdown .projection-total strong {
+  color: #7952b2;
+  font-size: 18px;
+}
+
+/* Negative payment amount */
+.simulator-results-modal .projection-breakdown .projection-negative {
+  color: #c94d59;
+}
+
+/* DARK MODE */
+[data-theme="dark"] .simulator-results-modal .projection-breakdown {
+  background: #1b263a;
+  border-color: #35435b;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown > div {
+  border-bottom-color: #35435b;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown span {
+  color: #b9c6dc;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown strong {
+  color: #f1f4fc;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown .projection-total {
+  background: #352b50;
+  border-color: #66518b;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown .projection-total span {
+  color: #d8c8f3;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown .projection-total strong {
+  color: #c5a8ff;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-breakdown .projection-negative {
+  color: #ff858c;
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+  .simulator-results-modal .projection-breakdown {
+    padding: 6px 12px;
+  }
+
+  .simulator-results-modal .projection-breakdown > div {
+    gap: 10px;
+  }
+
+  .simulator-results-modal .projection-breakdown span {
+    font-size: 12px;
+  }
+
+  .simulator-results-modal .projection-breakdown strong {
+    font-size: 13px;
+  }
+}
+
+/* REDUCE GAP BETWEEN WARNING AND BALANCE BREAKDOWN */
+.simulator-results-modal .financial-status {
+  margin-bottom: 0;
+}
+
+.simulator-results-modal .projection-breakdown {
+  margin-top: 40px;
+}
+
+/* NEGATIVE BALANCE — ROSE RED */
+.simulator-results-modal .projection-balance-negative {
+  background: #fcebed;
+  border: 1px solid #efc5cb;
+  border-radius: 10px;
+  margin: 8px -8px;
+  padding: 18px 12px;
+}
+
+.simulator-results-modal .projection-balance-negative span,
+.simulator-results-modal .projection-balance-negative strong {
+  color: #b43f50;
+  font-weight: 800;
+}
+
+/* POSITIVE BALANCE — PREMIUM GREEN */
+.simulator-results-modal .projection-balance-positive {
+  background: #e5f5ed;
+  border: 1px solid #b9e3cb;
+  border-radius: 10px;
+  margin: 8px -8px;
+  padding: 18px 12px;
+}
+
+.simulator-results-modal .projection-balance-positive span,
+.simulator-results-modal .projection-balance-positive strong {
+  color: #19764b;
+  font-weight: 800;
+}
+
+/* ZERO BALANCE — NEUTRAL LAVENDER */
+.simulator-results-modal .projection-balance-zero {
+  background: #eee6fa;
+  border: 1px solid #d8c6ef;
+  border-radius: 10px;
+  margin: 8px -8px;
+  padding: 18px 12px;
+}
+
+.simulator-results-modal .projection-balance-zero span,
+.simulator-results-modal .projection-balance-zero strong {
+  color: #65468e;
+  font-weight: 800;
+}
+
+/* DARK MODE */
+[data-theme="dark"] .simulator-results-modal .projection-balance-negative {
+  background: #492832;
+  border-color: #89505b;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-balance-negative span,
+[data-theme="dark"] .simulator-results-modal .projection-balance-negative strong {
+  color: #ff9da9;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-balance-positive {
+  background: #193d32;
+  border-color: #397b5e;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-balance-positive span,
+[data-theme="dark"] .simulator-results-modal .projection-balance-positive strong {
+  color: #9ce4ba;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-balance-zero {
+  background: #352b50;
+  border-color: #66518b;
+}
+
+[data-theme="dark"] .simulator-results-modal .projection-balance-zero span,
+[data-theme="dark"] .simulator-results-modal .projection-balance-zero strong {
+  color: #d8c8f3;
+}
+
+/* MANUAL INSTALLMENT INPUT */
+.installment-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.installment-input-wrapper input {
+  width: 100%;
+  padding-right: 125px;
+}
+
+.installment-input-wrapper span {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #795da0;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .installment-input-wrapper span {
+  color: #c9b5e8;
+}
+
+/* INSTALLMENT FREQUENCY NOTE */
+.installment-frequency-note {
+  display: block;
+  margin-top: 7px;
+  color: #806b9d;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.installment-frequency-note span {
+  color: #9874c5;
+  margin-right: 4px;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .installment-frequency-note {
+  color: #c9bce0;
+}
+
+[data-theme="dark"] .installment-frequency-note span {
+  color: #b69add;
+}
+
+/* PREMIUM FINANCIAL PROJECTION CARD */
+.projection-main-card {
+  background: linear-gradient(120deg, #6250dc, #8069ed);
+  color: #ffffff;
+}
+
+.projection-main-card .projection-label > span:first-child {
+  color: #f2edff;
+  font-weight: 600;
+}
+
+.projection-main-card .projection-icon {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.projection-main-card h1 {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.projection-main-card > p {
+  color: #f0ebff;
+  opacity: 1;
+}
+
+.projection-main-card .financial-status {
+  background: rgba(43, 31, 105, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.projection-main-card .financial-status strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.projection-main-card .financial-status span {
+  color: #f0ebff;
+  opacity: 1;
+}
+
+/* PROJECTION PESO ICON — DARK MODE */
+[data-theme="dark"] .projection-main-card .projection-icon {
+  background: #493765;
+  color: #ffffff;
+  border: 1px solid #a78bd4;
+  opacity: 1;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+/* DASHBOARD SUMMARY ICONS — DARK MODE */
+
+/* Total Allowances — Purple */
+[data-theme="dark"] .summary-card .card-icon.purple {
+  background: #493765;
+  color: #D8BFFF !important;
+  border: 1px solid #8063A8;
+}
+
+/* Total Expenses — Orange */
+[data-theme="dark"] .summary-card .card-icon.orange {
+  background: #573923;
+  color: #FFD0A6 !important;
+  border: 1px solid #A66B3F;
+}
+
+/* Upcoming Installments — Blue */
+[data-theme="dark"] .summary-card .card-icon.blue {
+  background: #263F60;
+  color: #B9D9FF !important;
+  border: 1px solid #527EAE;
+}
+
+/* Projected Balance — Green */
+[data-theme="dark"] .summary-card .card-icon.green {
+  background: #23483D;
+  color: #B4F0D2 !important;
+  border: 1px solid #47866E;
+}
+
+/* HISTORICAL PAYMENTS — ESTIMATED BADGE */
+[data-theme="dark"] .historical-badge {
+  background: #493765;
+  color: #E5D5FF;
+  border: 1px solid #9876C8;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(151, 112, 205, 0.15);
+}
+
+/* DUEWISE — UNIFIED FORM DROPDOWNS */
+
+/* LIGHT MODE */
+select:not([multiple]) {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid #e2d8f0 !important;
+  border-radius: 11px !important;
+  background-color: #f5f1fc !important;
+  color: #493765 !important;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+select:not([multiple]):hover {
+  border-color: #9875cb !important;
+}
+
+select:not([multiple]):focus {
+  outline: none;
+  border-color: #9875cb !important;
+  box-shadow: 0 0 0 3px rgba(152, 117, 203, 0.15) !important;
+}
+
+select:not([multiple]) option {
+  background: #ffffff;
+  color: #493765;
+}
+
+/* DARK MODE */
+[data-theme="dark"] select:not([multiple]) {
+  background-color: #19283e !important;
+  color: #d5c6f0 !important;
+  border: 1px solid #9872c5 !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] select:not([multiple]):hover,
+[data-theme="dark"] select:not([multiple]):focus {
+  background-color: #25243c !important;
+  border-color: #b18bdd !important;
+}
+
+[data-theme="dark"] select:not([multiple]) option {
+  background-color: #19283e;
+  color: #c5d2e7;
+}
+
+[data-theme="dark"] select:not([multiple]) option:checked {
+  background-color: #343453;
+  color: #e0d3ff;
+}
+
+
+/* =================================
+   DUEWISE PREMIUM LOADING REFINEMENT
+================================= */
+
+/* Richer lavender background */
+.duewise-loading-screen {
+  background:
+    radial-gradient(
+      circle at 50% 35%,
+      rgba(255, 255, 255, 0.75),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(183, 158, 255, 0.38),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(167, 139, 250, 0.32),
+      transparent 42%
+    ),
+    linear-gradient(
+      135deg,
+      #e9defa,
+      #eee5fc 48%,
+      #dfd0f5
+    ) !important;
+}
+
+/* Make the logo significantly bigger */
+.duewise-loading-content .duewise-logo-icon {
+  width: 320px !important;
+  height: 240px !important;
+  max-width: 85vw;
+  padding: 0 !important;
+
+  object-fit: contain;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+
+  filter:
+    drop-shadow(0 8px 12px rgba(91, 52, 153, 0.12))
+    drop-shadow(0 0 22px rgba(145, 103, 230, 0.38));
+
+  animation: duewise-logo-float 3.5s ease-in-out infinite;
+}
+
+/* Brand name */
+.duewise-loading-content .duewise-logo-text span {
+  color: #392653 !important;
+  font-size: 42px !important;
+  font-weight: 850;
+  letter-spacing: -1.5px;
+}
+
+/* Tagline */
+.duewise-loading-content .duewise-logo-text small {
+  color: #786292 !important;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+/* More refined spinner */
+.duewise-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(112, 75, 165, 0.12);
+  border-top-color: #a77af5;
+  border-right-color: #7650d8;
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.16);
+}
+
+/* Loading message */
+.duewise-loading-content p {
+  color: #49345f !important;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Supporting tagline */
+.duewise-loading-content > small {
+  color: #826c9d !important;
+  font-size: 12px;
+}
+
+/* Mobile sizing */
+@media (max-width: 600px) {
+  .duewise-loading-content .duewise-logo-icon {
+    width: 260px !important;
+    height: 200px !important;
+  }
+
+  .duewise-loading-content .duewise-logo-text span {
+    font-size: 34px !important;
+  }
+}
+
+@keyframes duewise-loading-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* DueWise loading screen exit transition */
+.duewise-loading-screen.is-exiting {
+  animation: duewise-loading-exit 0.5s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes duewise-loading-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duewise-loading-screen.is-exiting {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* DueWise authentication page entrance */
+.auth-page .auth-layout {
+  animation: duewise-auth-enter 0.75s ease-out both;
+}
+
+@keyframes duewise-auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-page .auth-layout {
+    animation: none;
+  }
+}
+
+/* Animate authentication form when switching modes */
+.auth-card-transition {
+  animation: duewise-auth-card-enter 0.45s ease-out both;
+}
+
+@keyframes duewise-auth-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card-transition {
+    animation: none;
+  }
+}
+
+/* DueWise dashboard sidebar entrance */
+.app-container .sidebar {
+  animation: duewise-sidebar-enter 0.65s ease-out both;
+}
+
+@keyframes duewise-sidebar-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-container .sidebar {
+    animation: none;
+  }
+}
+
+/* DUEWISE TOPBAR ENTRANCE ANIMATION */
+
+.topbar {
+  animation: topbar-enter 0.7s ease-out both;
+}
+
+@keyframes topbar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Breadcrumb and page title */
+.topbar .breadcrumb {
+  animation: topbar-text-enter 0.6s ease-out 0.15s both;
+}
+
+.topbar h1 {
+  animation: topbar-text-enter 0.6s ease-out 0.25s both;
+}
+
+/* Right-side date and avatar */
+.topbar-right {
+  animation: topbar-text-enter 0.6s ease-out 0.35s both;
+}
+
+@keyframes topbar-text-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .topbar,
+  .topbar .breadcrumb,
+  .topbar h1,
+  .topbar-right {
+    animation: none;
+  }
+}
+
+/* SIDEBAR NAVIGATION HOVER EFFECT */
+
+.sidebar a,
+.sidebar button {
+  transition: background-color 0.25s ease,
+              color 0.25s ease,
+              transform 0.25s ease;
+}
+
+.sidebar a:hover,
+.sidebar button:hover {
+  transform: translateX(4px);
+}
+
+/* Smooth active navigation state */
+.sidebar a.active,
+.sidebar button.active {
+  transition: all 0.25s ease;
+}
+
+/* DASHBOARD CARD HOVER EFFECT */
+
+.stat-card,
+.dashboard-card,
+.summary-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover,
+.dashboard-card:hover,
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* BUTTON HOVER EFFECT */
+
+button,
+.btn {
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease,
+              opacity 0.2s ease;
+}
+
+button:hover,
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+button:active,
+.btn:active {
+  transform: translateY(0);
+}
+
+/* DASHBOARD CONTENT FADE-IN */
+
+.dashboard-content {
+  animation: dashboard-fade 0.7s ease-out both;
+}
+
+@keyframes dashboard-fade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-content {
+    animation: none;
+  }
+}
+
+/* FORM INPUT FOCUS EFFECT */
+
+input,
+textarea,
+select {
+  transition: border-color 0.25s ease,
+              box-shadow 0.25s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #9b8acb;
+  box-shadow: 0 0 0 3px rgba(155, 138, 203, 0.15);
+}
+
+/* TABLE ROW HOVER ANIMATION */
+
+table tbody tr {
+  transition: background-color 0.25s ease,
+              transform 0.2s ease;
+}
+
+table tbody tr:hover {
+  background-color: #f8f6ff;
+}
+
+table tbody td {
+  transition: color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  table tbody tr,
+  table tbody td {
+    transition: none;
+  }
+}
+
+/* DROPDOWN ENTRANCE ANIMATION */
+
+.notification-dropdown,
+.notifications-dropdown,
+.notification-panel,
+.profile-dropdown,
+.profile-menu {
+  animation: dropdown-enter 0.25s ease-out both;
+  transform-origin: top right;
+}
+
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-dropdown,
+  .notifications-dropdown,
+  .notification-panel,
+  .profile-dropdown,
+  .profile-menu {
+    animation: none;
+  }
+}
+
+
+/* ==========================================
+   DUEWISE — ENHANCED NOTIFICATION DROPDOWN
+========================================== */
+
+.notification-menu-container,
+.profile-menu-container {
+  position: relative;
+  z-index: 500;
+}
+
+/* Notification button */
+.notification-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: #ffffff;
+  border: 1px solid #e9e3f3;
+  color: #6555a0;
+  transition: all 0.25s ease;
+}
+
+.notification-button:hover,
+.notification-button.active {
+  background: #f1ebfb;
+  border-color: #cfc0e8;
+  color: #7656b5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(118, 86, 181, 0.12);
+}
+
+/* Notification badge */
+.notification-badge {
+  border: 2px solid var(--dw-surface);
+  box-shadow: 0 2px 5px rgba(220, 70, 70, 0.2);
+}
+
+/* Notification dropdown */
+.notification-dropdown {
+  width: 350px;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e8def5;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(65, 45, 95, 0.16);
+  animation: dropdownFade 0.22s ease-out;
+  z-index: 600;
+}
+
+/* Notification header */
+.notification-dropdown-header {
+  padding: 19px 21px;
+  background: #f8f5fd;
+  border-bottom: 1px solid #eee7f6;
+  color: #493765;
+  font-size: 14px;
+}
+
+.notification-dropdown-header strong {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+/* Empty notification state */
+.notification-empty {
+  min-height: 190px;
+  padding: 30px 20px;
+  gap: 11px;
+}
+
+.notification-empty svg {
+  width: 48px;
+  height: 48px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #f0eafb;
+  color: #8062b5;
+  opacity: 1;
+}
+
+.notification-empty strong {
+  color: #493765;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.notification-empty p {
+  color: #9488a7;
+  font-size: 11px;
+}
+
+/* ==========================================
+   DUEWISE — ENHANCED PROFILE DROPDOWN
+========================================== */
+
+/* Profile trigger */
+.topbar-profile-button {
+  padding: 5px 9px;
+  border-radius: 13px;
+  transition: all 0.25s ease;
+}
+
+.topbar-profile-button:hover,
+.topbar-profile-button.active {
+  background: #f1ebfb;
+  border-color: #e2d7f0;
+}
+
+.topbar-profile-button svg {
+  transition: transform 0.25s ease;
+}
+
+.topbar-profile-button.active svg {
+  transform: rotate(180deg);
+}
+
+/* Profile dropdown panel */
+.profile-dropdown {
+  width: 285px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid #e8def5;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(65, 45, 95, 0.16);
+  animation: dropdownFade 0.22s ease-out;
+  z-index: 600;
+}
+
+/* Profile information header */
+.profile-dropdown-header {
+  padding: 14px 10px 17px;
+  gap: 13px;
+}
+
+.dropdown-avatar {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #eee6fa;
+  background: #e9def8;
+  color: #7052a6;
+  font-size: 16px;
+  box-shadow: 0 3px 8px rgba(118, 86, 181, 0.10);
+}
+
+.dropdown-user-info {
+  gap: 5px;
+}
+
+.dropdown-user-info strong {
+  color: #493765;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dropdown-user-info span {
+  color: #9588a8;
+  font-size: 10px;
+}
+
+/* Dropdown dividers */
+.dropdown-divider {
+  background: #eee8f5;
+  margin: 6px 3px;
+}
+
+/* Profile menu items */
+.profile-dropdown-item {
+  min-height: 43px;
+  padding: 12px;
+  gap: 12px;
+  border-radius: 11px;
+  color: #594a70;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.profile-dropdown-item svg {
+  color: #8b70b7;
+  transition: transform 0.2s ease;
+}
+
+.profile-dropdown-item:hover {
+  background: #f3eefb;
+  color: #7052a6;
+  transform: translateX(2px);
+}
+
+.profile-dropdown-item:hover svg {
+  transform: scale(1.08);
+}
+
+.profile-dropdown-item small {
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: #f0eafb;
+  color: #8062b5;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Sign out item */
+.profile-dropdown-item.logout-item {
+  color: #d66c78;
+}
+
+.profile-dropdown-item.logout-item svg {
+  color: #d66c78;
+}
+
+.profile-dropdown-item.logout-item:hover {
+  background: #fff0f1;
+  color: #c94e61;
+}
+
+/* ==========================================
+   DARK MODE SUPPORT
+========================================== */
+
+.app-container[data-theme="dark"] .notification-button {
+  background: #29213b;
+  border-color: #493b5e;
+  color: #d7c6f2;
+}
+
+.app-container[data-theme="dark"] .notification-button:hover,
+.app-container[data-theme="dark"] .notification-button.active {
+  background: #493765;
+  border-color: #725a99;
+  color: #ffffff;
+}
+
+.app-container[data-theme="dark"] .notification-dropdown,
+.app-container[data-theme="dark"] .profile-dropdown {
+  background: #29213b;
+  border-color: #493b5e;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.3);
+}
+
+.app-container[data-theme="dark"] .notification-dropdown-header {
+  background: #332944;
+  border-color: #493b5e;
+  color: #f4eeff;
+}
+
+.app-container[data-theme="dark"] .notification-empty strong,
+.app-container[data-theme="dark"] .dropdown-user-info strong {
+  color: #f4eeff;
+}
+
+.app-container[data-theme="dark"] .notification-empty p,
+.app-container[data-theme="dark"] .dropdown-user-info span {
+  color: #c0b2d5;
+}
+
+.app-container[data-theme="dark"] .notification-empty svg,
+.app-container[data-theme="dark"] .dropdown-avatar {
+  background: #493765;
+  color: #dfceff;
+}
+
+.app-container[data-theme="dark"] .dropdown-divider {
+  background: #493b5e;
+}
+
+.app-container[data-theme="dark"] .profile-dropdown-item {
+  color: #e7ddf5;
+}
+
+.app-container[data-theme="dark"] .profile-dropdown-item svg {
+  color: #c1a7e8;
+}
+
+.app-container[data-theme="dark"] .profile-dropdown-item:hover {
+  background: #403351;
+  color: #ffffff;
+}
+
+.app-container[data-theme="dark"] .profile-dropdown-item small {
+  background: #493765;
+  color: #dfceff;
+}
+
+.app-container[data-theme="dark"] .profile-dropdown-item.logout-item {
+  color: #ff9ba5;
+}
+
+.app-container[data-theme="dark"] .profile-dropdown-item.logout-item:hover {
+  background: #4b2e3b;
+}
+
+/* ==========================================
+   RESPONSIVE DROPDOWNS
+========================================== */
+
+@media (max-width: 520px) {
+  .notification-dropdown {
+    right: -55px;
+    width: min(350px, calc(100vw - 24px));
+  }
+
+  .profile-dropdown {
+    width: min(285px, calc(100vw - 90px));
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .notification-button,
+  .topbar-profile-button,
+  .profile-dropdown-item,
+  .profile-dropdown-item svg {
+    transition: none;
+  }
+
+  .notification-dropdown,
+  .profile-dropdown {
+    animation: none;
+  }
+}
+
+/* Keep dropdown containers above dashboard content */
+.notification-menu-container,
+.profile-menu-container {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Keep dropdown panels fully visible */
+.notification-dropdown,
+.profile-dropdown {
+  position: absolute;
+  z-index: 1001;
+}
+
+/* Ensure the top navigation stays above dashboard cards */
+.topbar {
+  position: relative;
+  z-index: 999;
+}
+
+/* Notification dropdown positioning */
+.notification-dropdown {
+  top: calc(100% + 14px);
+  right: 0;
+}
+
+/* Profile dropdown positioning */
+.profile-dropdown {
+  top: calc(100% + 14px);
+  right: 0;
+}
+
+/* Responsive dropdown sizing */
+@media (max-width: 600px) {
+  .notification-dropdown {
+    width: min(330px, calc(100vw - 32px));
+    right: -55px;
+  }
+
+  .profile-dropdown {
+    width: min(265px, calc(100vw - 32px));
+    right: 0;
+  }
+}
+
+/* Dark mode: profile trigger when dropdown is open */
+.app-container[data-theme="dark"] .topbar-profile-button {
+  background: #2b203b;
+  border-color: #49345f;
+  color: #f1eaff;
+}
+
+.app-container[data-theme="dark"] .topbar-profile-button:hover {
+  background: #382849;
+  border-color: #7652a5;
+}
+
+
+/* FIX: DatePicker positioning inside installment modal */
+.duewise-datepicker-popper {
+  z-index: 99999 !important;
+}
+
+.duewise-datepicker-popper .react-datepicker {
+  z-index: 99999 !important;
+  position: relative;
+  margin-top: 6px;
+}
+
+.duewise-datepicker-popper .react-datepicker__triangle {
+  display: none;
+}
+
+/* Keep the calendar above modal content */
+.react-datepicker-popper {
+  z-index: 99999 !important;
+}
+
+/* Ensure the date input remains properly positioned */
+.installment-modal .react-datepicker-wrapper {
+  width: 100%;
+}
+
+.installment-modal .react-datepicker__input-container {
+  width: 100%;
+}
+
+
+/* Notification list */
+.notification-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mark-all-read-button {
+  border: none;
+  background: transparent;
+  color: #7560e8;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notification-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: none;
+  border-bottom: 1px solid var(--dw-border);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  color: var(--dw-text);
+  transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+  background: rgba(117, 96, 232, 0.07);
+}
+
+.notification-item.unread {
+  background: rgba(117, 96, 232, 0.06);
+}
+
+.notification-item-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: rgba(117, 96, 232, 0.14);
+  color: #8974ed;
+}
+
+.notification-item-content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.notification-item-content strong {
+  font-size: 12px;
+  color: var(--dw-text);
+}
+
+.notification-item-content span {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--dw-muted);
+}
+
+.notification-item-content small {
+  font-size: 10px;
+  color: var(--dw-muted);
+}
+
+.notification-unread-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #7560e8;
+}
+
+/* Dark mode */
+.app-container[data-theme="dark"] .notification-item {
+  border-color: #34445d;
+}
+
+.app-container[data-theme="dark"] .notification-item.unread {
+  background: rgba(137, 116, 237, 0.12);
+}
+
+/* Notification detail modal */
+
+.notification-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 10, 25, 0.68);
+  backdrop-filter: blur(8px);
+  animation: notificationFadeIn 0.2s ease;
+}
+
+.notification-modal {
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  border: 1px solid var(--dw-border);
+  border-radius: 22px;
+  background: var(--dw-card, #19263b);
+  color: var(--dw-text);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+  animation: notificationModalIn 0.25s ease;
+}
+
+.notification-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(117, 96, 232, 0.12);
+  border-bottom: 1px solid var(--dw-border);
+}
+
+.notification-modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.notification-modal-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 15px;
+  color: #a895ff;
+  background: rgba(117, 96, 232, 0.2);
+}
+
+.notification-modal-label,
+.notification-section-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--dw-muted);
+}
+
+.notification-modal-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.notification-modal-close {
+  border: none;
+  background: transparent;
+  color: var(--dw-muted);
+  font-size: 27px;
+  cursor: pointer;
+}
+
+.notification-modal-body {
+  padding: 24px;
+}
+
+.notification-modal-message {
+  margin: 0 0 20px;
+  color: var(--dw-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.notification-detail-card {
+  padding: 18px;
+  border: 1px solid var(--dw-border);
+  border-radius: 16px;
+  background: rgba(117, 96, 232, 0.06);
+}
+
+.notification-detail-card h3 {
+  margin: 10px 0 18px;
+  font-size: 20px;
+}
+
+.notification-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--dw-border);
+  font-size: 12px;
+}
+
+.notification-detail-row span {
+  color: var(--dw-muted);
+}
+
+.notification-detail-row strong {
+  text-align: right;
+}
+
+.notification-modal-date {
+  margin: 18px 0 0;
+  color: var(--dw-muted);
+  font-size: 11px;
+}
+
+.notification-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--dw-border);
+}
+
+.notification-modal-footer button {
+  padding: 11px 17px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notification-modal-secondary {
+  border: 1px solid var(--dw-border);
+  background: transparent;
+  color: var(--dw-text);
+}
+
+.notification-modal-primary {
+  border: none;
+  background: #7560e8;
+  color: white;
+}
+
+.notification-modal-primary:hover {
+  background: #624bd4;
+}
+
+.notification-error {
+  color: #ef7777;
+  font-size: 13px;
+}
+
+@keyframes notificationFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes notificationModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 520px) {
+  .notification-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .notification-modal-footer button {
+    width: 100%;
+  }
+}
+
+/* Fixed, centered notification modal */
+.notification-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+
+  padding: 20px;
+  box-sizing: border-box;
+
+  background: rgba(5, 10, 25, 0.68);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.notification-modal {
+  position: relative;
+  width: min(480px, 100%);
+  max-width: 480px;
+  max-height: calc(100dvh - 40px);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  border-radius: 22px;
+  box-sizing: border-box;
+
+  flex-shrink: 0;
+}
+
+.notification-modal-body {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.notification-modal-header,
+.notification-modal-footer {
+  flex-shrink: 0;
+}
+
+@media (max-width: 520px) {
+  .notification-modal-overlay {
+    padding: 14px;
+  }
+
+  .notification-modal {
+    width: 100%;
+    max-height: calc(100dvh - 28px);
+  }
+}
+
+
+/* =========================================
+   DUEWISE PREMIUM NOTIFICATION MODAL
+========================================= */
+
+/* LIGHT THEME */
+.notification-modal-overlay {
+  --modal-bg: #ffffff;
+  --modal-header: #f5f1ff;
+  --modal-card: #f8f7fc;
+  --modal-text: #17233b;
+  --modal-muted: #68758b;
+  --modal-border: #e7e5ef;
+  --modal-accent: #7558e8;
+  --modal-accent-hover: #6245d5;
+  --modal-close-bg: #f0edfa;
+
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px;
+  box-sizing: border-box;
+
+  background: rgba(12, 17, 32, 0.58) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* DARK THEME */
+.notification-modal-overlay[data-theme="dark"] {
+  --modal-bg: #17243a;
+  --modal-header: #242b4d;
+  --modal-card: #1e2c45;
+  --modal-text: #f5f7ff;
+  --modal-muted: #a6b5cd;
+  --modal-border: #34445e;
+  --modal-accent: #8065f3;
+  --modal-accent-hover: #927cff;
+  --modal-close-bg: #303b59;
+
+  background: rgba(3, 8, 20, 0.76) !important;
+}
+
+/* MAIN MODAL */
+.notification-modal {
+  width: min(480px, 100%) !important;
+  max-width: 480px !important;
+  max-height: calc(100dvh - 40px);
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  border: 1px solid var(--modal-border) !important;
+  border-radius: 24px !important;
+
+  background: var(--modal-bg) !important;
+  color: var(--modal-text) !important;
+
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.32),
+    0 8px 25px rgba(70, 48, 150, 0.12) !important;
+
+  animation: duewiseModalEnter 0.25s ease-out;
+}
+
+/* HEADER */
+.notification-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 26px 28px !important;
+
+  background: var(--modal-header) !important;
+  border-bottom: 1px solid var(--modal-border) !important;
+}
+
+.notification-modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.notification-modal-icon {
+  width: 54px !important;
+  height: 54px !important;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 17px !important;
+  background: rgba(128, 101, 243, 0.16) !important;
+  color: var(--modal-accent) !important;
+}
+
+.notification-modal-label {
+  display: block;
+  margin-bottom: 7px;
+
+  color: var(--modal-muted) !important;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.notification-modal-heading h2 {
+  margin: 0 !important;
+  color: var(--modal-text) !important;
+  font-size: 19px !important;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.notification-modal-close {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none !important;
+  border-radius: 11px;
+  background: var(--modal-close-bg) !important;
+  color: var(--modal-muted) !important;
+
+  font-size: 22px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.notification-modal-close:hover {
+  background: var(--modal-accent) !important;
+  color: #ffffff !important;
+}
+
+/* BODY */
+.notification-modal-body {
+  padding: 26px 28px !important;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.notification-modal-message {
+  margin: 0 0 23px !important;
+  color: var(--modal-muted) !important;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* INSTALLMENT CARD */
+.notification-detail-card {
+  padding: 21px !important;
+
+  border: 1px solid var(--modal-border) !important;
+  border-radius: 18px !important;
+
+  background: var(--modal-card) !important;
+}
+
+.notification-section-label {
+  display: block;
+  margin-bottom: 13px;
+
+  color: var(--modal-muted) !important;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.notification-detail-card h3 {
+  margin: 0 0 20px !important;
+  color: var(--modal-text) !important;
+  font-size: 22px;
+  font-weight: 750;
+}
+
+/* INFORMATION ROWS */
+.notification-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 14px 0 !important;
+  border-top: 1px solid var(--modal-border) !important;
+}
+
+.notification-detail-row span {
+  color: var(--modal-muted) !important;
+  font-size: 12px;
+}
+
+.notification-detail-row strong {
+  color: var(--modal-text) !important;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* RECEIVED DATE */
+.notification-modal-date {
+  margin: 20px 0 0 !important;
+  color: var(--modal-muted) !important;
+  font-size: 11px;
+}
+
+/* FOOTER */
+.notification-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 11px;
+
+  padding: 19px 28px !important;
+  border-top: 1px solid var(--modal-border) !important;
+  background: var(--modal-bg) !important;
+}
+
+.notification-modal-footer button {
+  min-height: 46px;
+  padding: 0 21px !important;
+
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* CLOSE BUTTON */
+.notification-modal-secondary {
+  border: 1px solid var(--modal-border) !important;
+  background: var(--modal-card) !important;
+  color: var(--modal-text) !important;
+}
+
+.notification-modal-secondary:hover {
+  border-color: var(--modal-accent) !important;
+  color: var(--modal-accent) !important;
+}
+
+/* PRIMARY BUTTON */
+.notification-modal-primary {
+  border: none !important;
+  background: linear-gradient(
+    135deg,
+    #8065f3,
+    #674ce0
+  ) !important;
+
+  color: #ffffff !important;
+  box-shadow: 0 5px 15px rgba(117, 88, 232, 0.23);
+}
+
+.notification-modal-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(117, 88, 232, 0.32);
+}
+
+/* LOADING AND ERROR */
+.notification-detail-card p {
+  color: var(--modal-muted) !important;
+  font-size: 13px;
+}
+
+.notification-error {
+  color: #ef7777 !important;
+}
+
+/* ANIMATION */
+@keyframes duewiseModalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* MOBILE */
+@media (max-width: 520px) {
+  .notification-modal-overlay {
+    padding: 14px;
+  }
+
+  .notification-modal {
+    width: 100% !important;
+    max-height: calc(100dvh - 28px);
+    border-radius: 19px !important;
+  }
+
+  .notification-modal-header,
+  .notification-modal-body {
+    padding: 20px !important;
+  }
+
+  .notification-modal-footer {
+    padding: 16px 20px !important;
+  }
+
+  .notification-modal-footer button {
+    flex: 1;
+    padding: 0 12px !important;
+  }
+}
+
+.notification-success {
+  color: #16a36a !important;
+  font-weight: 700;
+}
+
+/* Dynamic notification icon colors */
+.notification-icon-installment {
+  background: #e9ddff !important;
+  color: #7855f5 !important;
+}
+
+.notification-icon-payment {
+  background: #dceeff !important;
+  color: #3285dc !important;
+}
+
+.notification-icon-completed {
+  background: #d9f8e8 !important;
+  color: #159b61 !important;
+}
+
+.notification-icon-reminder {
+  background: #fff0d9 !important;
+  color: #e79527 !important;
+}
+
+/* Dark mode */
+[data-theme="dark"] .notification-icon-installment {
+  background: #393064 !important;
+  color: #a991ff !important;
+}
+
+[data-theme="dark"] .notification-icon-payment {
+  background: #203b5c !important;
+  color: #72b5ff !important;
+}
+
+[data-theme="dark"] .notification-icon-completed {
+  background: #1d4938 !important;
+  color: #62d99b !important;
+}
+
+[data-theme="dark"] .notification-icon-reminder {
+  background: #51402a !important;
+  color: #ffc36b !important;
+}
+
+/* Payment Confirmation Modal */
+.payment-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(15, 18, 35, 0.55);
+  backdrop-filter: blur(7px);
+  animation: paymentFadeIn 0.2s ease;
+}
+
+.payment-confirm-modal {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  border-radius: 24px;
+  background: #ffffff;
+  color: #202944;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: paymentModalIn 0.25s ease;
+}
+
+.payment-confirm-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: #eee8ff;
+  color: #7652ed;
+}
+
+.payment-confirm-modal h2 {
+  margin: 0 0 10px;
+  font-size: 23px;
+  font-weight: 750;
+}
+
+.payment-confirm-message {
+  margin: 0 0 24px;
+  color: #75809a;
+  line-height: 1.6;
+}
+
+.payment-confirm-details {
+  padding: 18px;
+  margin-bottom: 24px;
+  border: 1px solid #e8e5f1;
+  border-radius: 16px;
+  background: #f8f7fc;
+  text-align: left;
+}
+
+.payment-confirm-details > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e8e5f1;
+}
+
+.payment-confirm-details > div:last-child {
+  border-bottom: none;
+}
+
+.payment-confirm-details span {
+  color: #78839b;
+  font-size: 13px;
+}
+
+.payment-confirm-details strong {
+  color: #202944;
+  font-size: 14px;
+  text-align: right;
+}
+
+.payment-confirm-details .payment-confirm-amount {
+  color: #7652ed;
+  font-size: 17px;
+}
+
+.payment-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.payment-confirm-actions button {
+  min-height: 52px;
+  padding: 0 22px;
+  border-radius: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.payment-confirm-cancel {
+  border: 1px solid #e5e2ef;
+  background: #f8f7fc;
+  color: #26314b;
+}
+
+.payment-confirm-submit {
+  flex: 1;
+  border: none;
+  background: linear-gradient(135deg, #8060f5, #6445df);
+  color: #ffffff;
+  box-shadow: 0 7px 18px rgba(112, 77, 232, 0.22);
+}
+
+.payment-confirm-actions button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.payment-confirm-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dark mode */
+[data-theme="dark"] .payment-confirm-modal {
+  background: #19263d;
+  color: #f2f4ff;
+  border: 1px solid #35445e;
+}
+
+[data-theme="dark"] .payment-confirm-icon {
+  background: #393064;
+  color: #a991ff;
+}
+
+[data-theme="dark"] .payment-confirm-message {
+  color: #a9b5ca;
+}
+
+[data-theme="dark"] .payment-confirm-details {
+  background: #202f49;
+  border-color: #35445e;
+}
+
+[data-theme="dark"] .payment-confirm-details > div {
+  border-color: #35445e;
+}
+
+[data-theme="dark"] .payment-confirm-details span {
+  color: #a9b5ca;
+}
+
+[data-theme="dark"] .payment-confirm-details strong {
+  color: #f2f4ff;
+}
+
+[data-theme="dark"] .payment-confirm-details .payment-confirm-amount {
+  color: #a991ff;
+}
+
+[data-theme="dark"] .payment-confirm-cancel {
+  background: #263650;
+  border-color: #35445e;
+  color: #f2f4ff;
+}
+
+@keyframes paymentFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes paymentModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-confirm-modal {
+    padding: 24px 20px;
+  }
+
+  .payment-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .payment-confirm-actions button {
+    width: 100%;
+  }
+}
+
+/* Dynamic icons inside notification dropdown */
+.notification-item-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Partially Paid Status Badge */
+.status.partial {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 20px;
+  background: #eeeaff;
+  color: #705de0;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Dark Mode */
+.app-container[data-theme="dark"] .status.partial {
+  background: #332d59;
+  color: #c0b7ff;
+}
+
+/* Dashboard table hover - Dark Mode */
+.app-container[data-theme="dark"] .content-card tbody tr:hover {
+  background: #263451 !important;
+}
+
+.app-container[data-theme="dark"] .content-card tbody tr:hover td {
+  color: #E5ECF7 !important;
+}
+
+/* DASHBOARD MOBILE RESPONSIVENESS */
+
+@media (max-width: 600px) {
+  /* Dashboard content spacing */
+  .content-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .summary-card,
+  .content-card {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  /* Section headings */
+  .section-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .section-heading h3 {
+    font-size: 15px;
+  }
+
+  .section-heading p {
+    font-size: 11px;
+  }
+
+  /* Upcoming Installments table */
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrapper table {
+    min-width: 520px;
+  }
+
+  /* Financial Overview */
+  .balance-item {
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .balance-total {
+    gap: 8px;
+    padding: 14px 12px;
+  }
+
+  .balance-total strong {
+    font-size: 15px;
+  }
+
+  /* Payment Calendar */
+  .dashboard-calendar .section-heading {
+    flex-direction: column;
+  }
+
+  .calendar-navigation {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .calendar-navigation strong {
+    flex: 1;
+    text-align: center;
+  }
+
+  .calendar-grid {
+    gap: 3px;
+  }
+
+  .calendar-day {
+    min-width: 0;
+    min-height: 48px;
+    padding: 6px 2px;
+    font-size: 12px;
+  }
+
+  .calendar-weekday {
+    font-size: 10px;
+  }
+
+  .calendar-legend {
+    gap: 12px;
+    font-size: 11px;
+  }
+}
+
+/* Keep Sidebar Visible While Scrolling */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-height: 100vh;
+  align-self: flex-start;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+/* FIXED SIDEBAR ON MOBILE */
+@media (max-width: 760px) {
+  .app-container {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .app-container .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 76px !important;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    flex-shrink: 0;
+  }
+
+  .app-container .main-content {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    width: calc(100% - 76px);
+    margin-left: 76px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+  }
+}
+
+/* FIXED TOP BAR - DESKTOP AND MOBILE */
+
+.app-container .main-content > .topbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 76px !important;
+  right: 0 !important;
+  width: auto !important;
+  height: 68px;
+  min-height: 68px;
+  margin: 0 !important;
+  padding: 10px 38px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  background: var(--dw-background) !important;
+  z-index: 1500 !important;
+}
+
+/* Reserve space for the fixed top bar */
+.app-container .main-content {
+  padding-top: 88px !important;
+}
+
+/* Keep header elements aligned */
+.app-container .main-content > .topbar h1 {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.app-container .main-content > .topbar .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Smaller screens */
+@media (max-width: 760px) {
+  .app-container .main-content > .topbar {
+    left: 76px !important;
+    height: 58px;
+    min-height: 58px;
+    padding: 8px 12px !important;
+  }
+
+  .app-container .main-content {
+    padding-top: 74px !important;
+  }
+}
+
+/* PREVENT EXPANDED SIDEBAR FROM OVERLAPPING CONTENT */
+
+/* Smoothly adjust content when sidebar expands */
+.app-container .main-content {
+  transition: margin-left 0.25s ease, width 0.25s ease;
+}
+
+/* Keep sidebar above the main content */
+.app-container .sidebar {
+  z-index: 2000;
+}
+
+/* Keep top bar below the expanded sidebar */
+.app-container .main-content > .topbar {
+  z-index: 1500;
+}
+
+/* Prevent horizontal overflow */
+.app-container .main-content {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+@media (max-width: 760px) {
+  .app-container:has(.sidebar:hover) .main-content {
+    margin-left: 76px !important;
+    width: calc(100% - 76px) !important;
+  }
+
+  .app-container:has(.sidebar:hover) .main-content > .topbar {
+    left: 76px !important;
+  }
+}
+
+/* FLOATING EXPANDABLE SIDEBAR */
+
+/* Keep sidebar above the page */
+.app-container .sidebar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 76px !important;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 2000 !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width 0.25s ease;
+  box-shadow: none;
+}
+
+/* Expand over the content instead of pushing it */
+.app-container .sidebar:hover {
+  width: 255px !important;
+  box-shadow: 8px 0 25px rgba(20, 39, 70, 0.15);
+}
+
+/* Main content never moves */
+.app-container .main-content {
+  margin-left: 76px !important;
+  width: calc(100% - 76px) !important;
+  transition: none !important;
+}
+
+/* Top bar stays in its original position */
+.app-container .main-content > .topbar {
+  left: 76px !important;
+  right: 0 !important;
+  width: auto !important;
+}
+
+/* Keep sidebar content visible when expanded */
+.app-container .sidebar:hover .brand {
+  justify-content: flex-start;
+}
+
+/* Mobile: keep sidebar collapsed */
+@media (max-width: 760px) {
+  .app-container .sidebar:hover {
+    width: 76px !important;
+  }
+
+  .app-container .main-content {
+    margin-left: 76px !important;
+    width: calc(100% - 76px) !important;
+  }
+}
+
+.notification-delete-button {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 0.2s ease;
+}
+
+.notification-delete-button:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.notification-delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-all-notifications-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.notification-undo-toast {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 3000;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 16px;
+  background: #242b3d;
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+}
+
+.notification-undo-toast span,
+.notification-undo-toast button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-undo-toast button {
+  border: none;
+  background: transparent;
+  color: #c4b5fd;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.notification-menu-container {
+  position: relative;
+}
+
+
+/* ==========================================
+   DUEWISE — PREMIUM NOTIFICATION ACTIONS
+========================================== */
+
+/* Premium Delete All button */
+.delete-all-notifications-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 1px solid #eadcf8;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fff5f6, #fce8ed);
+  color: #c34d68;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  box-shadow: 0 3px 9px rgba(195, 77, 104, 0.08);
+}
+
+.delete-all-notifications-button:hover {
+  background: linear-gradient(135deg, #f9dce5, #f6cbd9);
+  border-color: #e9b9ca;
+  color: #a92f51;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(195, 77, 104, 0.16);
+}
+
+.delete-all-notifications-button:active {
+  transform: scale(0.97);
+}
+
+/* Custom delete confirmation popup */
+.delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(31, 23, 45, 0.48);
+  backdrop-filter: blur(7px);
+  animation: deleteConfirmFade 0.2s ease;
+}
+
+.delete-confirm-modal {
+  width: 100%;
+  max-width: 410px;
+  padding: 30px;
+  border: 1px solid #eee5f7;
+  border-radius: 22px;
+  background: #ffffff;
+  color: #493765;
+  text-align: center;
+  box-shadow: 0 25px 70px rgba(45, 30, 70, 0.22);
+  animation: deleteConfirmEnter 0.25s ease;
+}
+
+.delete-confirm-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: #fff0f2;
+  color: #d45b76;
+}
+
+.delete-confirm-modal h2 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.delete-confirm-modal p {
+  margin: 0 auto 25px;
+  max-width: 310px;
+  color: #91849f;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 11px;
+}
+
+.delete-confirm-actions button {
+  min-height: 43px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 19px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-cancel {
+  border: 1px solid #e9e0f0;
+  background: #f8f5fb;
+  color: #756582;
+}
+
+.delete-confirm-cancel:hover {
+  background: #eee8f5;
+}
+
+.delete-confirm-submit {
+  border: 1px solid #c94d6b;
+  background: linear-gradient(135deg, #df7189, #c94d6b);
+  color: white;
+  box-shadow: 0 4px 12px rgba(201, 77, 107, 0.2);
+}
+
+.delete-confirm-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 17px rgba(201, 77, 107, 0.28);
+}
+
+/* Read and unread indicators */
+.notification-read-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 3px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.notification-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.notification-read-status.is-unread {
+  background: #f0eaff;
+  color: #7956c2;
+}
+
+.notification-read-status.is-unread .notification-status-dot {
+  background: #8965d5;
+}
+
+.notification-read-status.is-read {
+  background: #e9f7ef;
+  color: #319565;
+}
+
+.notification-read-status.is-read .notification-status-dot {
+  background: #42ae78;
+}
+
+/* Dark mode */
+.app-container[data-theme="dark"] .delete-all-notifications-button {
+  background: #432b3b;
+  border-color: #654052;
+  color: #ffafc0;
+}
+
+.app-container[data-theme="dark"] .delete-all-notifications-button:hover {
+  background: #593449;
+  color: #ffd3dc;
+}
+
+.app-container[data-theme="dark"] .delete-confirm-modal {
+  background: #29213b;
+  border-color: #493b5e;
+  color: #f4eeff;
+}
+
+.app-container[data-theme="dark"] .delete-confirm-icon {
+  background: #4b2e43;
+  color: #ff9db4;
+}
+
+.app-container[data-theme="dark"] .delete-confirm-modal p {
+  color: #c0b2d5;
+}
+
+.app-container[data-theme="dark"] .delete-confirm-cancel {
+  background: #403351;
+  border-color: #59476e;
+  color: #e7ddf5;
+}
+
+.app-container[data-theme="dark"] .notification-read-status.is-unread {
+  background: #40345d;
+  color: #d0baff;
+}
+
+.app-container[data-theme="dark"] .notification-read-status.is-read {
+  background: #214536;
+  color: #8ce0b2;
+}
+
+/* Animations */
+@keyframes deleteConfirmFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes deleteConfirmEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .delete-confirm-modal {
+    padding: 24px 19px;
+  }
+
+  .delete-confirm-actions button {
+    flex: 1;
+    padding: 0 10px;
+  }
+}
+
+.undo-countdown {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #c4b5fd;
+  font-weight: 500;
+}
+
+/* =================================
+   DASHBOARD INSIGHTS - TWO ROWS
+   ================================= */
+
+.dashboard-insights-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.dashboard-calendar-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.dashboard-calendar-row .dashboard-calendar {
+  width: 100%;
+  margin-top: 0;
+}
+
+.dashboard-insights-grid .category-breakdown {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+}
+
+/* Mobile spacing */
+@media (max-width: 600px) {
+  .dashboard-insights-grid {
+    gap: 18px;
+  }
+}
+
+/* Three-column dashboard overview */
+.dashboard-top-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.25fr)
+    minmax(0, 0.9fr)
+    minmax(0, 0.9fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.dashboard-top-grid > .content-card {
+  min-width: 0;
+  width: 100%;
+  height: auto;
+}
+
+/* Category breakdown spacing */
+.dashboard-top-grid .category-breakdown {
+  margin-top: 0;
+}
+
+/* Tablet and mobile */
+@media (max-width: 1000px) {
+  .dashboard-top-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .dashboard-top-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* =========================================
+   DASHBOARD: THREE-CARD TOP ROW
+   ========================================= */
+
+.content-grid.dashboard-top-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.3fr)
+    minmax(250px, 0.85fr)
+    minmax(260px, 0.9fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.content-grid.dashboard-top-grid > .content-card {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.content-grid.dashboard-top-grid .category-breakdown {
+  margin-top: 0;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+  .content-grid.dashboard-top-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content-grid.dashboard-top-grid .category-breakdown {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+  .content-grid.dashboard-top-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .content-grid.dashboard-top-grid .category-breakdown {
+    grid-column: auto;
+  }
+}
+
+/* =================================
+   SPENDING CATEGORY DOUGHNUT CHART
+   ================================= */
+
+.spending-donut-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 28px 0;
+  min-width: 0;
+}
+
+.spending-donut-chart {
+  width: 160px;
+  height: 160px;
+  min-width: 160px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.spending-donut-center {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--card-bg, #fff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.spending-donut-center strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.spending-donut-center span {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.spending-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.spending-legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  min-width: 0;
+}
+
+.spending-legend-dot {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+.spending-legend-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.spending-legend-details strong {
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.spending-legend-details span {
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+/* Smaller dashboard cards */
+@media (max-width: 1100px) {
+  .spending-donut-layout {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .spending-donut-legend {
+    width: 100%;
+    max-height: 140px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+  .spending-donut-layout {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .spending-donut-chart {
+    width: 145px;
+    height: 145px;
+    min-width: 145px;
+  }
+
+  .spending-donut-center {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+/* =================================
+   DOUGHNUT CHART - DARK MODE
+   ================================= */
+
+[data-theme="dark"] .spending-donut-center,
+.dark-mode .spending-donut-center {
+  background: #1a2940;
+}
+
+[data-theme="dark"] .spending-donut-center strong,
+.dark-mode .spending-donut-center strong {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .spending-donut-center span,
+.dark-mode .spending-donut-center span {
+  color: #aebbd1;
+}
+
+/* Profile Information Save Button */
+.profile-save-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dw-border);
+}
+
+.profile-save-actions .primary-button {
+  min-width: 145px;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .profile-save-actions {
+    justify-content: stretch;
+  }
+
+  .profile-save-actions .primary-button {
+    width: 100%;
+  }
+}
+
+/* ==========================================
+   SETTINGS FORM ERROR STYLING
+========================================== */
+
+.profile-field-error {
+  display: block;
+  margin-top: 7px;
+  color: #ef4444 !important;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.profile-form-field input[aria-invalid="true"] {
+  border: 1.5px solid #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.06);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10);
+}
+
+.profile-form-field input[aria-invalid="true"]:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+  outline: none;
+}
+
+/* Dark mode */
+[data-theme="dark"] .profile-field-error,
+.dark-mode .profile-field-error {
+  color: #f87171 !important;
+}
+
+[data-theme="dark"] .profile-form-field input[aria-invalid="true"],
+.dark-mode .profile-form-field input[aria-invalid="true"] {
+  border-color: #f87171 !important;
+  background-color: rgba(248, 113, 113, 0.08);
+}
+
+/* Settings page spacing fix */
+.settings-page {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.settings-page .profile-information-card {
+  margin-top: 12px;
+  padding-top: 28px;
+  overflow: visible;
+}
+
+.settings-page .profile-information-card > h3 {
+  margin-top: 0;
+  padding-top: 0;
+  line-height: 1.4;
+}
+
+/* Keep the form fields properly spaced */
+.settings-page .profile-form-grid {
+  margin-top: 28px;
+}
+
+@media (max-width: 520px) {
+  .settings-page .profile-information-card {
+    padding: 20px 16px;
+  }
+
+  .settings-page .profile-form-grid {
+    margin-top: 22px;
+  }
+}
+
+/* Email validation error */
+.profile-form-field input[name="email"][aria-invalid="true"] {
+  border: 1.5px solid #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.06);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10);
+}
+
+.profile-form-field input[name="email"][aria-invalid="true"]:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+  outline: none;
+}
+
+.profile-form-field input[aria-invalid="true"] {
+  border: 1.5px solid #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
+
+.profile-form-field input[aria-invalid="true"]:focus {
+  border-color: #dc2626 !important;
+  outline: none;
+}
+
+/* ==========================================
+   FINANCIAL PREFERENCES ERROR HANDLING
+========================================== */
+
+.profile-form-field input[aria-invalid="true"],
+.profile-form-field .financial-input-error {
+  border: 1.5px solid #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.profile-form-field input[aria-invalid="true"]:focus {
+  border-color: #dc2626 !important;
+  outline: none;
+}
+
+.profile-form-field .financial-input-error {
+  border-radius: 12px;
+}
+
+.profile-form-field .profile-field-error {
+  display: block;
+  margin-top: 7px;
+  color: #ef4444 !important;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   FINANCIAL PREFERENCES SAVE BUTTON FIX
+========================================== */
+
+.financial-save-actions {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  width: 100% !important;
+  margin: 24px 0 0 !important;
+  padding: 18px 0 0 !important;
+  border-top: 1px solid var(--dw-border);
+  box-sizing: border-box;
+  clear: both;
+}
+
+.financial-save-actions .financial-save-feedback {
+  flex: 1;
+  min-width: 0;
+}
+
+.financial-save-actions .primary-button {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  transform: none;
+  margin: 0 !important;
+  flex-shrink: 0;
+  min-width: 175px;
+}
+
+/* Mobile alignment */
+@media (max-width: 520px) {
+  .financial-save-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+
+  .financial-save-actions .primary-button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Notification Preferences auto-save feedback */
+.notification-save-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 18px;
+  min-height: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.notification-save-feedback span {
+  line-height: 1.5;
+}
+
+.notification-saving {
+  color: #a78bfa;
+}
+
+.notification-save-success {
+  color: #22c55e;
+}
+
+.notification-save-error {
+  color: #ef4444;
+}
+
+/* Hide scrollbar but keep page scrolling enabled */
+html {
+  scrollbar-width: none;
+}
+
+body {
+  scrollbar-width: none;
+}
+
+/* Chrome, Edge, Safari */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Hide all scrollbars while keeping scrolling enabled */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+
+/* Notification dropdown header layout fix */
+.notification-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+}
+
+.notification-dropdown-header > strong {
+  flex-shrink: 0;
+}
+
+.notification-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+  margin-left: auto;
+}
+
+.notification-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Better spacing on smaller screens */
+@media (max-width: 480px) {
+  .notification-dropdown-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .notification-header-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
+
+
+/* Mark All as Read - match Delete All button styling */
+.mark-all-read-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 16px;
+  min-height: 42px;
+  border: 1px solid #e5dcff;
+  border-radius: 13px;
+  background: #f8f4ff;
+  color: #7955e8;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(121, 85, 232, 0.10);
+  transition: all 0.2s ease;
+}
+
+.mark-all-read-button:hover {
+  background: #eee7ff;
+  border-color: #cbbaff;
+  box-shadow: 0 5px 14px rgba(121, 85, 232, 0.16);
+  transform: translateY(-1px);
+}
+
+.mark-all-read-button:active {
+  transform: translateY(0);
+}
+
+.mark-all-read-button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Dark mode */
+.app-container[data-theme="dark"] .mark-all-read-button {
+  background: #30264a;
+  border-color: #514071;
+  color: #c5adff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.app-container[data-theme="dark"] .mark-all-read-button:hover {
+  background: #3b2e59;
+  border-color: #7259a5;
+}
+
+
+/* Compact and consistent notification action buttons */
+.notification-header-actions .mark-all-read-button,
+.notification-header-actions .delete-all-notifications-button {
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.notification-header-actions .mark-all-read-button svg,
+.notification-header-actions .delete-all-notifications-button svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* INSTALLMENT FORM VALIDATION */
+
+.field-error {
+  display: block;
+  width: 100%;
+  margin-top: -2px;
+  color: #ef7777;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.form-grid input[aria-invalid="true"],
+.form-grid .duewise-datepicker[aria-invalid="true"] {
+  border: 1px solid #ef7777;
+}
+
+/* PAYMENT FREQUENCY DROPDOWN WIDTH */
+
+.payment-frequency-control {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.payment-frequency-control > * {
+  width: 100%;
+  min-width: 0;
+}
+
+.payment-frequency-control button,
+.payment-frequency-control [role="button"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+
+/* ERROR MESSAGE SPACING */
+
+.form-grid label {
+  min-width: 0;
+}
+
+.form-grid label .field-error {
+  margin-bottom: 2px;
+}
+
+/* INSTALLMENT FORM VALIDATION ERRORS */
+
+.field-error {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  color: #ff4d5e !important;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Red border when a field has an error */
+.form-grid input[aria-invalid="true"],
+.form-grid .duewise-datepicker[aria-invalid="true"] {
+  border: 1px solid #ff4d5e !important;
+  box-shadow: 0 0 6px rgba(255, 77, 94, 0.25);
+}
+
+/* ALLOWANCE INVALID FIELD OUTLINE */
+
+.form-grid input[aria-invalid="true"],
+.form-grid .duewise-datepicker[aria-invalid="true"],
+.form-grid .duewise-datepicker[aria-invalid="true"] input {
+  border: 1px solid #ff4d5e !important;
+  box-shadow: 0 0 6px rgba(255, 77, 94, 0.25) !important;
+}
+
+/* EXPENSE CATEGORY DROPDOWN WIDTH */
+
+.expense-category-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.expense-category-control > * {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.expense-category-control button,
+.expense-category-control [role="button"] {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+
+/* EXPENSE VALIDATION */
+
+.expense-record-layout .field-error {
+  display: block;
+  margin-top: 5px;
+  color: #ff4d5e !important;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.form-grid input[aria-invalid="true"],
+.form-grid .duewise-datepicker[aria-invalid="true"],
+.form-grid .duewise-datepicker[aria-invalid="true"] input {
+  border: 1px solid #ff4d5e !important;
+  box-shadow: 0 0 6px rgba(255, 77, 94, 0.25) !important;
+}
+
+
+/* =================================
+   PROJECTION DARK MODE TABLE HOVER
+================================= */
+
+body.dark-mode .projection-page .table-wrapper tbody tr:hover,
+.dark-mode .projection-page .table-wrapper tbody tr:hover,
+[data-theme="dark"] .projection-page .table-wrapper tbody tr:hover {
+  background-color: #263750 !important;
+  color: #e8eef8 !important;
+  transition: background-color 0.2s ease;
+}
+
+body.dark-mode .projection-page .table-wrapper tbody tr:hover td,
+.dark-mode .projection-page .table-wrapper tbody tr:hover td,
+[data-theme="dark"] .projection-page .table-wrapper tbody tr:hover td {
+  background-color: transparent !important;
+  color: #e8eef8 !important;
+}
+
+body.dark-mode .projection-page .table-wrapper tbody tr:hover small,
+.dark-mode .projection-page .table-wrapper tbody tr:hover small,
+[data-theme="dark"] .projection-page .table-wrapper tbody tr:hover small {
+  color: #b9c8dc !important;
+}
+
+/* =================================
+   PROJECTED BALANCE STATUS COLORS
+================================= */
+
+.projection-page .projection-positive {
+  color: #36d399 !important;
+}
+
+.projection-page .projection-negative {
+  color: #ff646e !important;
+}
+
+.projection-page .projection-warning {
+  color: #fbbf24 !important;
+}
+
+/* Keep balance status colors when hovering */
+.projection-page .table-wrapper tbody tr:hover .projection-positive {
+  color: #36d399 !important;
+}
+
+.projection-page .table-wrapper tbody tr:hover .projection-negative {
+  color: #ff646e !important;
+}
+
+.projection-page .table-wrapper tbody tr:hover .projection-warning {
+  color: #fbbf24 !important;
+}
+
+/* Simulator validation errors */
+
+.input.invalid {
+  border: 1px solid #ff4d5e !important;
+  box-shadow: 0 0 6px rgba(255, 77, 94, 0.25) !important;
+}
+
+.field-error,
+.form-field .error {
+  color: #ff4d5e !important;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+/* Custom validation messages */
+.field-error {
+  display: block;
+  color: #ff646e;
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* Red outline for invalid fields */
+.field-invalid {
+  border: 1px solid #ff646e !important;
+  box-shadow: 0 0 0 1px rgba(255, 100, 110, 0.2) !important;
+}
+
+/* Keep the red outline visible on focus */
+.field-invalid:focus {
+  border-color: #ff646e !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 100, 110, 0.2) !important;
+}
+
+/* Payment frequency dropdown width */
+.payment-frequency-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.payment-frequency-control > * {
+  width: 100% !important;
+  min-width: 0;
+}
+
+.payment-frequency-control button {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Custom validation messages */
+.field-error {
+  display: block;
+  color: #ff4d5e;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 7px;
+}
+
+/* Invalid fields */
+.field-invalid {
+  border: 1px solid #ff4d5e !important;
+  box-shadow: 0 0 0 1px rgba(255, 77, 94, 0.15) !important;
+}
+
+.field-invalid:focus {
+  border-color: #ff4d5e !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 77, 94, 0.2) !important;
+}
+
+/* Base balance card */
+.simulator-balance-card {
+  padding: 30px;
+  border-radius: 16px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+  border: 1px solid transparent;
+}
+
+/* Negative balance */
+.simulator-balance-card.balance-danger {
+  background: linear-gradient(120deg, #8f2638, #d94355);
+  border-color: #f16b7b;
+}
+
+/* Below reserve */
+.simulator-balance-card.balance-warning {
+  background: linear-gradient(120deg, #92500e, #d68b25);
+  border-color: #f0b34d;
+}
+
+/* Healthy balance */
+.simulator-balance-card.balance-healthy {
+  background: linear-gradient(120deg, #176b50, #25a879);
+  border-color: #43c99a;
+}
+
+/* Card text */
+.simulator-balance-card span,
+.simulator-balance-card small {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.simulator-balance-card strong {
+  display: block;
+  color: #ffffff;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 12px 0;
+}
+
+.balance-status-label {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Actual Available Balance - Base */
+.projection-main-card {
+  transition: background 0.3s ease, border-color 0.3s ease;
+  border: 1px solid transparent;
+  border-radius: 18px;
+}
+
+/* Negative balance */
+.projection-main-card.actual-balance-danger {
+  background: linear-gradient(120deg, #8f2638, #d94355);
+  border-color: #f16b7b;
+}
+
+/* Below reserve limit */
+.projection-main-card.actual-balance-warning {
+  background: linear-gradient(120deg, #92500e, #d68b25);
+  border-color: #f0b34d;
+}
+
+/* Healthy balance */
+.projection-main-card.actual-balance-healthy {
+  background: linear-gradient(120deg, #176b50, #25a879);
+  border-color: #43c99a;
+}
+
+/* Keep card text readable */
+.projection-main-card h1,
+.projection-main-card p,
+.projection-main-card .projection-label,
+.projection-main-card .projection-icon {
+  color: #ffffff;
+}
+
+/* Inner status panel */
+.projection-main-card .financial-status {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.projection-main-card .financial-status strong,
+.projection-main-card .financial-status span {
+  color: #ffffff;
+}
+
+/* =====================================
+   FINANCIAL STATUS - INSUFFICIENT BALANCE
+   Visible in both light and dark modes
+===================================== */
+
+.projection-content-grid .financial-status.danger {
+  background: #991b2b !important;
+  border: 1px solid #ff5968 !important;
+  border-left: 5px solid #ff5968 !important;
+  border-radius: 12px;
+  padding: 18px;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(153, 27, 43, 0.22);
+}
+
+.projection-content-grid .financial-status.danger strong {
+  display: block;
+  color: #ffffff !important;
+  font-size: 16px;
+  font-weight: 750;
+  margin-bottom: 7px;
+}
+
+.projection-content-grid .financial-status.danger span {
+  display: block;
+  color: #ffffff !important;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 1;
+}
+
+/* Make the projected balance row more noticeable */
+.projection-content-grid .projection-total {
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+
+.projection-content-grid .projection-total strong.projection-negative {
+  color: #dc3545 !important;
+  font-weight: 800;
+}
+
+.balance-text-danger {
+  color: #dc3545 !important;
+  font-weight: 800;
+}
+
+.balance-text-warning {
+  color: #d97706 !important;
+  font-weight: 800;
+}
+
+.balance-text-success {
+  color: #16a36a !important;
+  font-weight: 800;
+}
+
+.summary-card h2.balance-text-danger {
+  color: #dc3545 !important;
+}
+
+.summary-card h2.balance-text-warning {
+  color: #d97706 !important;
+}
+
+.summary-card h2.balance-text-success {
+  color: #16a36a !important;
+}
+
+.installment-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .installment-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .installment-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Expense page - four summary cards in one row */
+.expenses-page .installment-summary {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.expenses-page .module-stat {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive layout */
+@media (max-width: 1100px) {
+  .expenses-page .installment-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .expenses-page .installment-summary {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* =================================
+   DUEWISE AUTHENTICATION LOADING
+================================= */
+
+.duewise-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(174, 137, 255, 0.28),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(125, 83, 235, 0.25),
+      transparent 40%
+    ),
+    linear-gradient(135deg, #f3edff, #e8ddff, #f8f5ff);
+
+  transition: opacity 0.35s ease;
+}
+
+.duewise-loading-screen.is-exiting {
+  opacity: 0;
+}
+
+.duewise-loading-content {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 22px;
+  animation: duewiseFadeUp 0.5s ease both;
+}
+
+.loading-logo-wrapper {
+  margin-bottom: 12px;
+  animation: duewiseFloat 3s ease-in-out infinite;
+}
+
+/* Spinner */
+
+.duewise-loading-spinner {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 4px solid rgba(111, 78, 220, 0.15);
+  border-top-color: #7654e8;
+  border-right-color: #a58af5;
+  animation: duewiseSpin 0.9s linear infinite;
+}
+
+.duewise-loading-spinner span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Loading message */
+
+.loading-message-wrapper h2 {
+  color: #302052;
+  font-size: 21px;
+  font-weight: 750;
+  margin: 0 0 9px;
+  letter-spacing: -0.4px;
+}
+
+.loading-message-wrapper p {
+  color: #786c98;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Animated progress */
+
+.loading-progress {
+  width: 190px;
+  height: 5px;
+  background: rgba(117, 84, 232, 0.15);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.loading-progress span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7654e8, #b18aff);
+  animation: duewiseProgress 1.5s ease-in-out infinite;
+}
+
+/* Security note */
+
+.loading-security-note {
+  color: #9184ae;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.loading-security-note span {
+  color: #7654e8;
+  margin-right: 5px;
+}
+
+/* Animations */
+
+@keyframes duewiseSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes duewiseProgress {
+  0% {
+    transform: translateX(-110%);
+  }
+
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+@keyframes duewiseFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes duewiseFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duewise-loading-spinner,
+  .loading-progress span,
+  .loading-logo-wrapper,
+  .duewise-loading-content {
+    animation: none;
+  }
+}
+
+
+/* =================================
+   DUEWISE LOGIN PAGE BACKGROUND
+   Match the Loading Screen
+================================= */
+
+.login-page,
+.auth-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(174, 137, 255, 0.28),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(125, 83, 235, 0.25),
+      transparent 40%
+    ),
+    linear-gradient(
+      135deg,
+      #f3edff,
+      #e8ddff,
+      #f8f5ff
+    );
+
+  background-attachment: fixed;
+}
+
+.phone-input-hint {
+  display: block;
+  margin-top: 7px;
+  color: #8985a3;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.auth-resend-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: #7654e8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.auth-resend-button:hover {
+  color: #5132c7;
+}
+
+.auth-resend-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* DUEWISE EMAIL VERIFICATION PAGE */
+
+
+/* ANIMATED DUEWISE VERIFICATION BACKGROUND */
+
+.duewise-verification-page {
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+
+  background: linear-gradient(
+    -45deg,
+    #f3edff,
+    #e6d9ff,
+    #f8f3ff,
+    #dcd0ff,
+    #f0e8ff
+  );
+
+  background-size: 400% 400%;
+  animation: verificationGradient 16s ease infinite;
+}
+
+/* Floating glowing orbs */
+.duewise-verification-page::before,
+.duewise-verification-page::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(3px);
+}
+
+.duewise-verification-page::before {
+  width: 480px;
+  height: 480px;
+  top: -130px;
+  left: -100px;
+
+  background: radial-gradient(
+    circle,
+    rgba(161, 119, 255, 0.35),
+    rgba(190, 160, 255, 0.12) 50%,
+    transparent 72%
+  );
+
+  animation: verificationFloatOne 12s ease-in-out infinite alternate;
+}
+
+.duewise-verification-page::after {
+  width: 550px;
+  height: 550px;
+  right: -140px;
+  bottom: -180px;
+
+  background: radial-gradient(
+    circle,
+    rgba(125, 83, 235, 0.28),
+    rgba(190, 160, 255, 0.12) 50%,
+    transparent 72%
+  );
+
+  animation: verificationFloatTwo 15s ease-in-out infinite alternate;
+}
+
+/* Moving gradient */
+@keyframes verificationGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* First floating glow */
+@keyframes verificationFloatOne {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(100px, 70px) scale(1.15);
+  }
+
+  100% {
+    transform: translate(40px, 150px) scale(0.95);
+  }
+}
+
+/* Second floating glow */
+@keyframes verificationFloatTwo {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-100px, -80px) scale(1.2);
+  }
+
+  100% {
+    transform: translate(-40px, -150px) scale(0.9);
+  }
+}
+
+/* Keep the verification card above the animated background */
+.duewise-verification-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* Accessibility: respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .duewise-verification-page,
+  .duewise-verification-page::before,
+  .duewise-verification-page::after {
+    animation: none;
+  }
+}
+
+.duewise-verification-card {
+  width: 100%;
+  max-width: 470px;
+  padding: 42px 38px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(83, 57, 143, 0.16);
+  animation: verificationFadeUp 0.6s ease both;
+}
+
+.verification-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.verification-icon {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  color: #7654e8;
+  font-size: 34px;
+  background: linear-gradient(135deg, #eee6ff, #dcd0ff);
+  box-shadow: 0 8px 24px rgba(118, 84, 232, 0.15);
+}
+
+.verification-eyebrow {
+  color: #8065e8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+}
+
+.duewise-verification-card h2 {
+  margin: 12px 0;
+  color: #302052;
+  font-size: 27px;
+  font-weight: 750;
+}
+
+.verification-description,
+.verification-instruction {
+  color: #786c98;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.verification-email {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid #e9e1fa;
+  border-radius: 12px;
+  background: #f8f5ff;
+  color: #493765;
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.verification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.verification-actions button {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.verification-primary-button {
+  border: none;
+  color: white;
+  background: linear-gradient(135deg, #7654e8, #6041d1);
+  box-shadow: 0 8px 20px rgba(118, 84, 232, 0.22);
+}
+
+.verification-primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 11px 24px rgba(118, 84, 232, 0.3);
+}
+
+.verification-secondary-button {
+  border: 1px solid #d9cdf8;
+  color: #7654e8;
+  background: #f5f0ff;
+}
+
+.verification-secondary-button:hover {
+  background: #ece4ff;
+}
+
+.verification-signout-button {
+  border: 1px solid #eee8f7;
+  color: #786c98;
+  background: white;
+}
+
+.verification-signout-button:hover {
+  background: #f8f5ff;
+}
+
+.verification-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.verification-success,
+.verification-error {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.verification-success {
+  color: #26734d;
+  background: #eaf8f0;
+}
+
+.verification-error {
+  color: #b42336;
+  background: #fff0f1;
+}
+
+.verification-footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee8f7;
+  color: #9184ae;
+  font-size: 12px;
+}
+
+@keyframes verificationFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .duewise-verification-card {
+    padding: 32px 22px;
+  }
+
+  .duewise-verification-card h2 {
+    font-size: 24px;
+  }
+}
+
+
+/* =================================
+   DUEWISE PREMIUM ACCOUNT SECURITY
+================================= */
+
+.account-security-card {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  border: 1px solid #eee7ff;
+  border-radius: 20px;
+  background: linear-gradient(
+    145deg,
+    #ffffff 0%,
+    #fcfaff 100%
+  );
+  box-shadow: 0 10px 35px rgba(91, 63, 155, 0.07);
+  transition: box-shadow 0.3s ease;
+}
+
+.account-security-card:hover {
+  box-shadow: 0 15px 40px rgba(91, 63, 155, 0.11);
+}
+
+.account-security-card .settings-card-header {
+  margin-bottom: 28px;
+}
+
+.account-security-card .settings-card-header h2 {
+  color: #302052;
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+  margin-bottom: 8px;
+}
+
+.account-security-card .settings-description {
+  color: #9185a9;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Password fields */
+
+.account-security-card .settings-security-content {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+}
+
+.account-security-card .settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.account-security-card .settings-field label {
+  color: #40345c;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.account-security-card .password-input-wrapper {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 15px;
+  border: 1px solid #e9e1f8;
+  border-radius: 12px;
+  background: #faf8ff;
+  transition: all 0.25s ease;
+}
+
+.account-security-card .password-input-wrapper:focus-within {
+  border-color: #9272ed;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(118, 84, 232, 0.10);
+}
+
+.account-security-card .password-input-wrapper input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #302052;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.account-security-card .password-input-wrapper input::placeholder {
+  color: #aaa0bc;
+}
+
+/* Show / Hide password */
+
+.account-security-card .password-toggle {
+  padding: 7px 9px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8060e8;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.account-security-card .password-toggle:hover {
+  background: #f0eaff;
+}
+
+/* Password requirements */
+
+.account-security-card .password-requirements {
+  padding: 17px;
+  border: 1px solid #eee6ff;
+  border-radius: 13px;
+  background: linear-gradient(
+    135deg,
+    #f8f5ff,
+    #ffffff
+  );
+  color: #76678f;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.account-security-card .password-requirements > strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #49356f;
+}
+
+.account-security-card .password-requirements p {
+  margin-top: 10px;
+  color: #6f55c5;
+}
+
+/* Update password button */
+
+.account-security-card .settings-security-button {
+  min-height: 51px;
+  padding: 0 25px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(
+    120deg,
+    #8060ee,
+    #6041d1
+  );
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(112, 76, 221, 0.22);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.account-security-card .settings-security-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(112, 76, 221, 0.3);
+}
+
+.account-security-card .settings-security-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Success and error messages */
+
+.account-security-card .settings-error {
+  padding: 12px 14px;
+  border: 1px solid #ffdddd;
+  border-radius: 10px;
+  background: #fff4f4;
+  color: #c04452;
+  font-size: 13px;
+}
+
+.account-security-card .settings-saved {
+  padding: 12px 14px;
+  border: 1px solid #d8f0df;
+  border-radius: 10px;
+  background: #f0fbf3;
+  color: #328052;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .account-security-card {
+    padding: 22px 17px;
+  }
+
+  .account-security-card .settings-card-header h2 {
+    font-size: 22px;
+  }
+}
+
+
+/* Right-aligned Update Password button */
+.account-security-card .settings-security-button {
+  display: block;
+  margin-left: auto;
+}
+
+/* Eye icon password toggle */
+.account-security-card .password-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  color: #8060e8;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-security-card .password-toggle:hover {
+  color: #6041d1;
+  background: #eee7ff;
+}
+
+.account-security-card .password-toggle svg {
+  display: block;
 }

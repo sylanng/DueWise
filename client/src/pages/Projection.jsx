@@ -112,6 +112,21 @@ function Projection() {
             description: 'Your projected balance is above your reserve limit.',
             className: 'healthy',
           };
+  
+  const getBalanceClass = (balance) => {
+  const value = Number(balance);
+  const reserve = Number(summary.reserveLimit) || 0;
+
+  if (value < 0) {
+    return 'projection-negative';
+  }
+
+  if (value <= reserve) {
+    return 'projection-warning';
+  }
+
+  return 'projection-positive';
+};
 
   return (
     <div className="projection-page">
@@ -127,32 +142,43 @@ function Projection() {
         <span className="demo-label">LIVE DATA</span>
       </div>
 
-      <div className="projection-main-card">
+      <div
+        className={`projection-main-card ${
+          summary.actualBalance < 0
+            ? 'actual-balance-danger'
+            : summary.actualBalance < summary.reserveLimit
+              ? 'actual-balance-warning'
+              : 'actual-balance-healthy'
+        }`}
+      >
         <div className="projection-label">
           <span>Actual Available Balance</span>
           <span className="projection-icon">₱</span>
         </div>
 
-        <h1 className={summary.actualBalance < 0 ? 'negative-balance' : ''}>
-          {formatCurrency(summary.actualBalance)}
-        </h1>
+        <h1>{formatCurrency(summary.actualBalance)}</h1>
 
-        <p>Your balance based on recorded income, expenses, and confirmed payments.</p>
+        <p>
+          Your balance based on recorded income, expenses, and confirmed payments.
+        </p>
 
-        <div className={`financial-status ${
-          summary.actualBalance < 0
-            ? 'danger'
-            : summary.isBelowReserve
-              ? 'warning'
-              : 'healthy'
-        }`}>
+        <div
+          className={`financial-status ${
+            summary.actualBalance < 0
+              ? 'danger'
+              : summary.actualBalance < summary.reserveLimit
+                ? 'warning'
+                : 'healthy'
+          }`}
+        >
           <strong>
             {summary.actualBalance < 0
-              ? 'Negative Actual Balance'
-              : summary.isBelowReserve
+              ? 'Insufficient Funds'
+              : summary.actualBalance < summary.reserveLimit
                 ? 'Below Reserve Limit'
                 : 'Above Reserve Limit'}
           </strong>
+
           <span>
             Your minimum reserve is {formatCurrency(summary.reserveLimit)}.
           </span>
@@ -246,9 +272,7 @@ function Projection() {
 
             <div className="projection-total">
               <span>Projected Balance</span>
-              <strong className={
-                summary.projectedBalance < 0 ? 'projection-negative' : ''
-              }>
+              <strong className={getBalanceClass(summary.projectedBalance)}>
                 {formatCurrency(summary.projectedBalance)}
               </strong>
             </div>
@@ -311,7 +335,9 @@ function Projection() {
                       {item.type === 'income' ? '+' : '-'}
                       {formatCurrency(item.amount)}
                     </td>
-                    <td>{formatCurrency(item.projectedBalance)}</td>
+                    <td className={getBalanceClass(item.projectedBalance)}>
+                      {formatCurrency(item.projectedBalance)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

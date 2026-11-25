@@ -33,6 +33,34 @@ function Allowances() {
   const [loadError, setLoadError] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const validateForm = () => {
+  const errors = {};
+
+  if (!form.source?.trim()) {
+    errors.source = 'Please enter the allowance source.';
+  }
+
+  const amount = Number(form.amount);
+
+  if (form.amount === '') {
+    errors.amount = 'Please enter the amount received.';
+  } else if (!Number.isFinite(amount) || amount <= 0) {
+    errors.amount = 'Amount must be greater than ₱0.';
+  }
+
+  if (!form.date) {
+    errors.date = 'Please select the date received.';
+  } else if (
+    Number.isNaN(new Date(`${form.date}T00:00:00`).getTime())
+  ) {
+    errors.date = 'Please select a valid date.';
+  }
+
+  setFieldErrors(errors);
+  return Object.keys(errors).length === 0;
+};
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat('en-PH', {
@@ -70,6 +98,16 @@ const loadAllowances = async () => {
     (total, item) => total + Number(item.amount || 0),
     0
   );
+
+  const currentMonthKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+  }).format(new Date());
+
+  const monthlyAllowances = allowances
+    .filter((item) => String(item.dateReceived || '').slice(0, 7) === currentMonthKey)
+    .reduce((total, item) => total + Number(item.amount || 0), 0);
 
   const latestAllowance =
     allowances.length > 0
@@ -111,22 +149,14 @@ const loadAllowances = async () => {
   
   // Validate the form and ask for confirmation
   const handleSubmit = (event) => {
-    event.preventDefault();
+  event.preventDefault();
 
-    const amount = Number(form.amount);
+  if (!validateForm()) {
+    return;
+  }
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-      alert('Please enter an amount greater than zero.');
-      return;
-    }
-
-    if (!form.source.trim() || !form.dateReceived) {
-      alert('Please complete the required fields.');
-      return;
-    }
-
-    setShowConfirm(true);
-  };
+  setShowConfirm(true);
+};
 
   // Save only after user confirms
   const handleConfirmSave = async () => {
@@ -207,6 +237,7 @@ const handleConfirmDelete = async () => {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(false);
+    setFieldErrors({});
   };
 
   const allowanceSources = [
@@ -242,8 +273,9 @@ const filteredAllowances = allowances.filter((item) => {
           onClick={() => {
             setForm(emptyForm);
             setEditingId(null);
-            setShowForm(true);
+            setFieldErrors({});
             setError('');
+            setShowForm(true);
           }}
         >
           + Add Allowance
@@ -282,6 +314,11 @@ const filteredAllowances = allowances.filter((item) => {
         </div>
 
         <div className="module-stat">
+          <span>Allowances This Month</span>
+          <strong>{formatCurrency(monthlyAllowances)}</strong>
+        </div>
+
+        <div className="module-stat">
           <span>Latest Allowance</span>
           <strong>
             {formatCurrency(latestAllowance?.amount || 0)}
@@ -291,14 +328,7 @@ const filteredAllowances = allowances.filter((item) => {
 
       
 {showForm && (
-  <div
-    className="installment-modal-overlay"
-    onMouseDown={(event) => {
-      if (event.target === event.currentTarget && !saving) {
-        handleCancel();
-      }
-    }}
-  >
+  <div className="installment-modal-overlay">
     <div
       className="installment-modal"
       role="dialog"
@@ -325,7 +355,7 @@ const filteredAllowances = allowances.filter((item) => {
       </div>
 
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-grid">
               <label>
                 Allowance Source
@@ -335,8 +365,12 @@ const filteredAllowances = allowances.filter((item) => {
                   value={form.source}
                   onChange={handleChange}
                   placeholder="e.g. Monthly Allowance"
+                  aria-invalid={Boolean(fieldErrors.source)}
                   required
                 />
+                {fieldErrors.source && (
+                  <span className="field-error">{fieldErrors.source}</span>
+                )}
               </label>
 
               <label>
@@ -349,8 +383,12 @@ const filteredAllowances = allowances.filter((item) => {
                   min="0.01"
                   step="0.01"
                   placeholder="e.g. 5000"
+                  aria-invalid={Boolean(fieldErrors.amount)}
                   required
                 />
+                {fieldErrors.amount && (
+                  <span className="field-error">{fieldErrors.amount}</span>
+                )}
               </label>
 
               <label>
@@ -367,8 +405,12 @@ const filteredAllowances = allowances.filter((item) => {
                   className="duewise-datepicker"
                   calendarClassName="duewise-calendar"
                   showPopperArrow={false}
+                  ariaInvalid={Boolean(fieldErrors.date)}
                   required
                 />
+                {fieldErrors.date && (
+                  <span className="field-error">{fieldErrors.date}</span>
+                )}
               </label>
 
               <label>

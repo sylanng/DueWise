@@ -150,19 +150,32 @@ export function normalizeSettings(values) {
 
 export function validateSimulation(values, today) {
   const errors = {};
-  checkAmount(values.amount, errors, 'amount', 'Payment amount');
+
+  checkAmount(
+    values.amount,
+    errors,
+    'amount',
+    'Payment amount'
+  );
+
   if (isBlank(values.remainingPayments)) {
     errors.remainingPayments = 'Number of payments is required.';
   } else {
-    const n = Number(values.remainingPayments);
-    if (!Number.isInteger(n) || n < 1 || n > 60) {
-      errors.remainingPayments = 'Number of payments must be a whole number from 1 to 60.';
+    const payments = Number(values.remainingPayments);
+
+    if (!Number.isInteger(payments) || payments < 1 || payments > 60) {
+      errors.remainingPayments =
+        'Number of payments must be a whole number from 1 to 60.';
     }
   }
-  checkDate(values.dueDate, errors, 'dueDate', 'First payment date');
-  if (!errors.dueDate && today && values.dueDate < today) {
-    errors.dueDate = 'First payment date cannot be in the past.';
-  }
+
+  checkDate(
+    values.dueDate,
+    errors,
+    'dueDate',
+    'First payment date'
+  );
+
   return result(errors);
 }
 

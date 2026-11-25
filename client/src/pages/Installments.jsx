@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { Wallet } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import apiRequest from '../services/api';
 import CustomDropdown from '../components/CustomDropdown';
@@ -20,6 +21,9 @@ function Installments() {
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [originalStatus, setOriginalStatus] = useState('unpaid');
   const [selectedInstallmentId, setSelectedInstallmentId] = useState(null);
+  const [pendingPayment, setPendingPayment] = useState(null);
+  const [recordingPayment, setRecordingPayment] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const selectedInstallment = installments.find(
     (item) => item.id === selectedInstallmentId
@@ -56,6 +60,10 @@ const loadInstallments = async () => {
     setLoading(true);
 
     const result = await apiRequest('/api/installments');
+
+    window.dispatchEvent(
+      new Event('duewise:notifications-updated')
+    );
 
     const loadedInstallments = result.data || [];
 
@@ -102,8 +110,15 @@ const handleChange = (event) => {
 
     return updated;
   });
-};
 
+  setFieldErrors((previous) => ({
+    ...previous,
+    [name]: '',
+    ...(name === 'totalAmount' || name === 'totalPayments'
+      ? { amountPerPayment: '' }
+      : {}),
+  }));
+};
 
 const handleDueDateChange = (date) => {
   if (!date) {
@@ -111,6 +126,13 @@ const handleDueDateChange = (date) => {
       ...previous,
       dueDate: '',
     }));
+
+    // Clear due date error
+    setFieldErrors((previous) => ({
+      ...previous,
+      dueDate: '',
+    }));
+
     return;
   }
 
@@ -122,6 +144,68 @@ const handleDueDateChange = (date) => {
     ...previous,
     dueDate: `${year}-${month}-${day}`,
   }));
+
+  // Clear due date error
+  setFieldErrors((previous) => ({
+    ...previous,
+    dueDate: '',
+  }));
+};
+
+  const validateForm = () => {
+  const errors = {};
+
+  if (!form.provider.trim()) {
+    errors.provider = 'Please enter the BNPL provider.';
+  }
+
+  if (!form.description.trim()) {
+    errors.description = 'Please enter the purchase name.';
+  }
+
+  const totalAmount = Number(form.totalAmount);
+
+  if (form.totalAmount === '') {
+    errors.totalAmount = 'Please enter the total purchase amount.';
+  } else if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+    errors.totalAmount = 'Amount must be greater than ₱0.';
+  }
+
+  const totalPayments = Number(form.totalPayments);
+
+  if (form.totalPayments === '') {
+    errors.totalPayments = 'Please enter the number of payments.';
+  } else if (
+    !Number.isInteger(totalPayments) ||
+    totalPayments < 1
+  ) {
+    errors.totalPayments = 'Enter a valid whole number of payments.';
+  }
+
+  const amountPerPayment = Number(form.amountPerPayment);
+
+  if (
+    !form.amountPerPayment ||
+    !Number.isFinite(amountPerPayment) ||
+    amountPerPayment <= 0
+  ) {
+    errors.amountPerPayment =
+      'Unable to calculate the payment amount. Check your total amount and number of payments.';
+  }
+
+  if (!form.paymentFrequency) {
+    errors.paymentFrequency = 'Please select a payment frequency.';
+  }
+
+  if (!form.dueDate) {
+    errors.dueDate = 'Please select the next due date.';
+  } else if (Number.isNaN(new Date(`${form.dueDate}T00:00:00`).getTime())) {
+    errors.dueDate = 'Please select a valid due date.';
+  }
+
+  setFieldErrors(errors);
+
+  return Object.keys(errors).length === 0;
 };
 
 
@@ -130,6 +214,12 @@ const handleDueDateChange = (date) => {
   // Show confirmation before saving
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setError('');
     setShowConfirm(true);
   };
 
@@ -182,8 +272,8 @@ const handleDueDateChange = (date) => {
     }
   };
 
-  // Record one installment payment
-const handleRecordPayment = async (item) => {
+  // Open custom payment confirmation
+const handleRecordPayment = (item) => {
   const remainingPayments =
     Number(item.totalPayments || 0) -
     Number(item.paidPayments || 0);
@@ -193,26 +283,37 @@ const handleRecordPayment = async (item) => {
     return;
   }
 
-  const confirmed = window.confirm(
-    `Are you sure you have paid installment ${Number(item.paidPayments || 0) + 1} of ${item.totalPayments} for ${item.provider}?`
-  );
-
-  if (!confirmed) return;
-
-  try {
-    setError('');
-
-    await apiRequest(
-      `/api/installments/${item.id}/record-payment`,
-      { method: 'POST' }
-    );
-
-    await loadInstallments();
-  } catch (error) {
-    console.error('Record payment error:', error);
-    setError('Failed to record payment. Please try again.');
-  }
+  setError('');
+  setPendingPayment(item);
 };
+
+  // Record payment after confirmation
+  const handleConfirmPayment = async () => {
+    if (!pendingPayment || recordingPayment) return;
+
+    try {
+      setRecordingPayment(true);
+      setError('');
+
+      await apiRequest(
+          `/api/installments/${pendingPayment.id}/record-payment`,
+          { method: 'POST' }
+        );
+
+        // Immediately refresh the app's notification dropdown
+        window.dispatchEvent(
+          new Event('duewise:notifications-updated')
+        );
+
+        setPendingPayment(null);
+        await loadInstallments();
+    } catch (error) {
+      console.error('Record payment error:', error);
+      setError('Failed to record payment. Please try again.');
+    } finally {
+      setRecordingPayment(false);
+    }
+  };
 
   // Edit an existing installment
   const handleEdit = (item) => {
@@ -232,6 +333,7 @@ const handleRecordPayment = async (item) => {
     setOriginalStatus(item.status || 'unpaid');
     setShowForm(true);
     setError('');
+    setFieldErrors({});
   };
 
   // Open custom delete confirmation
@@ -263,6 +365,7 @@ const handleRecordPayment = async (item) => {
     setShowForm(false);
     setError('');
     setOriginalStatus('unpaid');
+    setFieldErrors({});
   };
 
   // Currency formatter
@@ -289,9 +392,11 @@ const handleRecordPayment = async (item) => {
       item.provider || ''
     ).toLowerCase();
 
+    const searchTerm = search.trim().toLowerCase();
+
     const matchesSearch =
-      description.includes(search.toLowerCase()) ||
-      provider.includes(search.toLowerCase());
+      description.includes(searchTerm) ||
+      provider.includes(searchTerm);
 
     const matchesFilter =
       filter === 'All' ||
@@ -326,6 +431,59 @@ const handleRecordPayment = async (item) => {
           Number(item.paidPayments || 0),
       0
     );
+
+  const currentMonthKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+  }).format(new Date());
+
+  const getNextScheduledDate = (dateString, frequency) => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    if (frequency === 'weekly') {
+      date.setUTCDate(date.getUTCDate() + 7);
+    } else if (frequency === 'biweekly') {
+      date.setUTCDate(date.getUTCDate() + 14);
+    } else if (frequency === 'monthly') {
+      const nextMonth = new Date(Date.UTC(year, month, 1));
+      const lastDay = new Date(
+        Date.UTC(nextMonth.getUTCFullYear(), nextMonth.getUTCMonth() + 1, 0)
+      ).getUTCDate();
+      nextMonth.setUTCDate(Math.min(day, lastDay));
+      return nextMonth.toISOString().slice(0, 10);
+    } else {
+      return dateString;
+    }
+
+    return date.toISOString().slice(0, 10);
+  };
+
+  const dueThisMonth = installments.reduce((total, item) => {
+    if (item.status === 'paid') return total;
+
+    const remainingPayments = Math.max(
+      0,
+      Number(item.totalPayments || 0) - Number(item.paidPayments || 0)
+    );
+    if (remainingPayments === 0) return total;
+
+    let dueDate = String(item.nextDueDate || item.dueDate || '').slice(0, 10);
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dueDate)) return total;
+
+    let itemMonthlyTotal = 0;
+    for (let index = 0; index < remainingPayments; index++) {
+      if (dueDate.slice(0, 7) === currentMonthKey) {
+        itemMonthlyTotal += Number(item.amountPerPayment || 0);
+      }
+      if (index < remainingPayments - 1) {
+        dueDate = getNextScheduledDate(dueDate, item.paymentFrequency);
+      }
+    }
+
+    return total + itemMonthlyTotal;
+  }, 0);
 
   return (
     <div className="installments-page">
@@ -375,8 +533,13 @@ const handleRecordPayment = async (item) => {
         </div>
 
         <div className="module-stat">
-          <span>Remaining Payments</span>
+          <span>Total Remaining Payments</span>
           <strong>{formatCurrency(pendingTotal)}</strong>
+        </div>
+
+        <div className="module-stat">
+          <span>Payments Due This Month</span>
+          <strong>{formatCurrency(dueThisMonth)}</strong>
         </div>
 
         <div className="module-stat">
@@ -386,15 +549,9 @@ const handleRecordPayment = async (item) => {
       </div>
 
       
+
 {showForm && (
-  <div
-    className="installment-modal-overlay"
-    onMouseDown={(event) => {
-      if (event.target === event.currentTarget && !saving) {
-        handleCancel();
-      }
-    }}
-  >
+  <div className="installment-modal-overlay">
     <div
       className="installment-modal"
       role="dialog"
@@ -421,7 +578,7 @@ const handleRecordPayment = async (item) => {
       </div>
 
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-grid">
               <label>
                 BNPL Provider
@@ -431,8 +588,12 @@ const handleRecordPayment = async (item) => {
                   value={form.provider}
                   onChange={handleChange}
                   placeholder="e.g. Home Credit"
+                  aria-invalid={Boolean(fieldErrors.provider)}
                   required
                 />
+                {fieldErrors.provider && (
+                  <span className="field-error">{fieldErrors.provider}</span>
+                )}
               </label>
 
               <label>
@@ -443,8 +604,12 @@ const handleRecordPayment = async (item) => {
                   value={form.description}
                   onChange={handleChange}
                   placeholder="e.g. Smartphone"
+                  aria-invalid={Boolean(fieldErrors.description)}
                   required
                 />
+                {fieldErrors.description && (
+                  <span className="field-error">{fieldErrors.description}</span>
+                )}
               </label>
 
               <label>
@@ -457,8 +622,12 @@ const handleRecordPayment = async (item) => {
                   disabled={hasRecordedPayments}
                   min="0.01"
                   step="0.01"
+                  aria-invalid={Boolean(fieldErrors.totalAmount)}
                   required
                 />
+                {fieldErrors.totalAmount && (
+                  <span className="field-error">{fieldErrors.totalAmount}</span>
+                )}
               </label>
 
               <label>
@@ -472,26 +641,12 @@ const handleRecordPayment = async (item) => {
                   disabled={hasRecordedPayments}
                   min="0.01"
                   step="0.01"
+                  aria-invalid={Boolean(fieldErrors.amountPerPayment)}
                   required
                 />
-              </label>
-              
-              <label>
-                Next Due Date
-                <DatePicker
-                  selected={
-                    form.dueDate
-                      ? new Date(`${form.dueDate}T00:00:00`)
-                      : null
-                  }
-                  onChange={handleDueDateChange}
-                  dateFormat="MM/dd/yyyy"
-                  placeholderText="Select next due date"
-                  className="duewise-datepicker"
-                  calendarClassName="duewise-calendar"
-                  showPopperArrow={false}
-                  required
-                />
+                {fieldErrors.amountPerPayment && (
+                  <span className="field-error">{fieldErrors.amountPerPayment}</span>
+                )}
               </label>
 
               <label>
@@ -504,21 +659,66 @@ const handleRecordPayment = async (item) => {
                   disabled={hasRecordedPayments}
                   min="1"
                   step="1"
+                  aria-invalid={Boolean(fieldErrors.totalPayments)}
                   required
                 />
+                {fieldErrors.totalPayments && (
+                  <span className="field-error">{fieldErrors.totalPayments}</span>
+                )}
               </label>
 
               <label>
                 Payment Frequency
-                <select
-                  name="paymentFrequency"
-                  value={form.paymentFrequency}
-                  onChange={handleChange}
-                >
-                  <option value="weekly">Weekly</option>
-                  <option value="biweekly">Every two weeks</option>
-                  <option value="monthly">Monthly</option>
-                </select>
+
+                <div className="payment-frequency-control">
+                  <CustomDropdown
+                    value={form.paymentFrequency}
+                    options={[
+                      { value: 'weekly', label: 'Weekly' },
+                      { value: 'biweekly', label: 'Every two weeks' },
+                      { value: 'monthly', label: 'Monthly' },
+                    ]}
+                    onChange={(value) => {
+                      setForm((previous) => ({
+                        ...previous,
+                        paymentFrequency: value,
+                      }));
+
+                      setFieldErrors((previous) => ({
+                        ...previous,
+                        paymentFrequency: '',
+                      }));
+                    }}
+                  />
+                </div>
+                {fieldErrors.paymentFrequency && (
+                  <span className="field-error">{fieldErrors.paymentFrequency}</span>
+                )}
+              </label>
+
+              <label>
+                Next Due Date               
+                <DatePicker
+                  selected={
+                    form.dueDate
+                      ? new Date(`${form.dueDate}T00:00:00`)
+                      : null
+                  }
+                  onChange={handleDueDateChange}
+                  dateFormat="MM/dd/yyyy"
+                  placeholderText="Select next due date"
+                  className="duewise-datepicker"
+                  calendarClassName="duewise-calendar"
+                  popperClassName="duewise-datepicker-popper"
+                  popperPlacement="bottom-start"
+                  portalId="root"
+                  showPopperArrow={false}
+                  aria-invalid={Boolean(fieldErrors.dueDate)}
+                  required
+                />
+                {fieldErrors.dueDate && (
+                  <span className="field-error">{fieldErrors.dueDate}</span>
+                )}
               </label>
 
               <label>
@@ -719,6 +919,75 @@ const handleRecordPayment = async (item) => {
         </div>
       </div>
       </>
+    )}
+    {pendingPayment && (
+      <div className="payment-confirm-overlay">
+        <div
+          className="payment-confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="payment-confirm-title"
+        >
+          <div className="payment-confirm-icon">
+            <Wallet size={28} strokeWidth={2} />
+          </div>
+
+          <h2 id="payment-confirm-title">Confirm Payment</h2>
+
+          <p className="payment-confirm-message">
+            Are you sure you have paid this installment?
+          </p>
+
+          <div className="payment-confirm-details">
+            <div>
+              <span>Purchase</span>
+              <strong>
+                {pendingPayment.description || 'Installment'}
+              </strong>
+            </div>
+
+            <div>
+              <span>Provider</span>
+              <strong>{pendingPayment.provider}</strong>
+            </div>
+
+            <div>
+              <span>Payment Number</span>
+              <strong>
+                {Number(pendingPayment.paidPayments || 0) + 1} of{' '}
+                {pendingPayment.totalPayments}
+              </strong>
+            </div>
+
+            <div>
+              <span>Payment Amount</span>
+              <strong className="payment-confirm-amount">
+                {formatCurrency(pendingPayment.amountPerPayment)}
+              </strong>
+            </div>
+          </div>
+
+          <div className="payment-confirm-actions">
+            <button
+              type="button"
+              className="payment-confirm-cancel"
+              onClick={() => setPendingPayment(null)}
+              disabled={recordingPayment}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              className="payment-confirm-submit"
+              onClick={handleConfirmPayment}
+              disabled={recordingPayment}
+            >
+              {recordingPayment ? 'Processing...' : 'Confirm Payment'}
+            </button>
+          </div>
+        </div>
+      </div>
     )}
     {showConfirm && (
       <ConfirmDialog

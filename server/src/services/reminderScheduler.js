@@ -3,6 +3,7 @@ const { getAuth } = require('firebase-admin/auth');
 const { db } = require('../config/firebaseAdmin');
 const { sendEmail } = require('./emailService');
 const { paymentReminderEmail } = require('./emailTemplates');
+const MAX_RETRY_ATTEMPTS = 3;
 
 const TIME_ZONE = 'Asia/Manila';
 const REMINDER_DAYS = [5, 1, 0];
@@ -47,8 +48,25 @@ const getDaysDifference = (today, dueDate) => {
 
 // Determine whether a previous reminder can be retried
 const canRetryReminder = (notification) => {
+  const attempts = Number(notification.attempts || 1);
+
+  if (attempts >= MAX_RETRY_ATTEMPTS) {
+    return false;
+  }
+
   if (notification.status === 'failed') {
-    return true;
+    const lastAttempt = notification.updatedAt?.toDate
+      ? notification.updatedAt.toDate()
+      : notification.updatedAt instanceof Date
+        ? notification.updatedAt
+        : null;
+
+    if (!lastAttempt) return true;
+
+    const elapsedMinutes =
+      (Date.now() - lastAttempt.getTime()) / 60000;
+
+    return elapsedMinutes >= RETRY_AFTER_MINUTES;
   }
 
   if (notification.status !== 'sending') {
@@ -65,14 +83,12 @@ const canRetryReminder = (notification) => {
           ? notification.createdAt
           : null;
 
-  if (!lastAttempt) {
-    return false;
-  }
+  if (!lastAttempt) return false;
 
-  const elapsedMinutes =
-    (Date.now() - lastAttempt.getTime()) / 60000;
-
-  return elapsedMinutes >= RETRY_AFTER_MINUTES;
+  return (
+    (Date.now() - lastAttempt.getTime()) / 60000 >=
+    RETRY_AFTER_MINUTES
+  );
 };
 
 // Process one reminder
@@ -183,6 +199,7 @@ const processReminder = async ({
     return;
   }
 
+  try {
   const result = await sendEmail({
     to: email,
     subject:
@@ -197,9 +214,27 @@ const processReminder = async ({
   await notificationRef.update({
     status: result.success ? 'sent' : 'failed',
     emailId: result.id || null,
-    error: result.error?.message || null,
+    error: result.error?.message || (
+      result.skipped ? 'Email sending was skipped.' : null
+    ),
     updatedAt: new Date(),
   });
+
+  console.log(
+    `Reminder ${result.success ? 'sent' : 'failed'}: ${installment.id}`
+  );
+} catch (error) {
+  await notificationRef.update({
+    status: 'failed',
+    error: error.message,
+    updatedAt: new Date(),
+  });
+
+  console.error(
+    `Reminder email error for ${installment.id}:`,
+    error.message
+  );
+}
 
   console.log(
     `Reminder ${result.success ? 'sent' : 'failed'}: ${installment.id}`
@@ -207,91 +242,122 @@ const processReminder = async ({
 };
 
 // Check all users and upcoming installments
+
 const checkInstallmentReminders = async () => {
   console.log('Checking DueWise installment reminders...');
 
   try {
     const today = getToday();
-    const usersSnapshot = await db.collection('users').get();
+    const auth = getAuth();
 
-    for (const userDocument of usersSnapshot.docs) {
-      const uid = userDocument.id;
+    let pageToken;
+    let totalUsersProcessed = 0;
 
-      try {
-        const settingsDocument = await db
-          .collection('users')
-          .doc(uid)
-          .collection('settings')
-          .doc('preferences')
-          .get();
+    do {
+      const result = await auth.listUsers(1000, pageToken);
 
-        const settings = settingsDocument.exists
-          ? settingsDocument.data()
-          : {};
+      console.log('Firebase Auth users found:', result.users.length);
 
-        if (
-          settings.emailNotifications !== true ||
-          settings.dueDateReminders !== true
-        ) {
-          continue;
-        }
-
-        const userRecord = await getAuth().getUser(uid);
+      for (const userRecord of result.users) {
+        const uid = userRecord.uid;
         const email = userRecord.email;
 
-        if (!email) {
-          console.warn(`Reminder skipped for user ${uid}: email missing.`);
-          continue;
-        }
+        totalUsersProcessed++;
 
-        const installmentsSnapshot = await db
-          .collection('users')
-          .doc(uid)
-          .collection('installments')
-          .get();
+        try {
+          if (!email) {
+            console.warn(`Skipping user ${uid}: email missing.`);
+            continue;
+          }
 
-        for (const installmentDocument of installmentsSnapshot.docs) {
-          const installment = {
-            id: installmentDocument.id,
-            ...installmentDocument.data(),
-          };
+          const userRef = db.collection('users').doc(uid);
 
-          const totalPayments = Number(installment.totalPayments || 0);
-          const paidPayments = Number(installment.paidPayments || 0);
+          const settingsDocument = await userRef
+            .collection('settings')
+            .doc('preferences')
+            .get();
+
+          const settings = settingsDocument.exists
+            ? settingsDocument.data()
+            : {};
+
+          console.log('User reminder settings:', {
+            uid,
+            emailNotifications: settings.emailNotifications,
+            dueDateReminders: settings.dueDateReminders,
+          });
 
           if (
-            installment.status === 'paid' ||
-            totalPayments <= 0 ||
-            paidPayments >= totalPayments
+            settings.emailNotifications !== true ||
+            settings.dueDateReminders !== true
           ) {
+            console.log(`Skipping user ${uid}: reminder settings disabled.`);
             continue;
           }
 
-          const dueDate =
-            installment.nextDueDate || installment.dueDate;
+          const installmentsSnapshot = await userRef
+            .collection('installments')
+            .get();
 
-          const daysUntilDue = getDaysDifference(today, dueDate);
+          console.log(
+            `Found ${installmentsSnapshot.size} installments for user ${uid}.`
+          );
 
-          if (!REMINDER_DAYS.includes(daysUntilDue)) {
-            continue;
+          for (const installmentDocument of installmentsSnapshot.docs) {
+            const installment = {
+              id: installmentDocument.id,
+              ...installmentDocument.data(),
+            };
+
+            const totalPayments = Number(installment.totalPayments || 0);
+            const paidPayments = Number(installment.paidPayments || 0);
+
+            if (
+              installment.status === 'paid' ||
+              totalPayments <= 0 ||
+              paidPayments >= totalPayments
+            ) {
+              continue;
+            }
+
+            const dueDate =
+              installment.nextDueDate || installment.dueDate;
+
+            const daysUntilDue = getDaysDifference(today, dueDate);
+
+            console.log('Reminder check:', {
+              installment: installment.description,
+              provider: installment.provider,
+              dueDate,
+              today,
+              daysUntilDue,
+              status: installment.status,
+            });
+
+            if (!REMINDER_DAYS.includes(daysUntilDue)) {
+              continue;
+            }
+
+            await processReminder({
+              uid,
+              email,
+              installment,
+              dueDate,
+              daysUntilDue,
+            });
           }
-
-          await processReminder({
-            uid,
-            email,
-            installment,
-            dueDate,
-            daysUntilDue,
-          });
+        } catch (userError) {
+          console.error(
+            `Reminder processing failed for user ${uid}:`,
+            userError.message
+          );
         }
-      } catch (userError) {
-        console.error(
-          `Reminder processing failed for user ${uid}:`,
-          userError.message
-        );
       }
-    }
 
+      pageToken = result.pageToken;
+    } while (pageToken);
+
+    console.log(`Total Firebase Auth users processed: ${totalUsersProcessed}`);
     console.log('DueWise reminder check completed.');
   } catch (error) {
     console.error('Reminder scheduler error:', error);
@@ -301,7 +367,7 @@ const checkInstallmentReminders = async () => {
 // Run every day at 8:00 AM Philippine time
 const startReminderScheduler = () => {
   cron.schedule(
-    '0 8 * * *',
+    '*/15 * * * *',
     checkInstallmentReminders,
     { timezone: TIME_ZONE }
   );
@@ -311,7 +377,73 @@ const startReminderScheduler = () => {
   );
 };
 
+const testSingleInstallmentReminder = async (uid, installmentId) => {
+  const userRef = db.collection('users').doc(uid);
+
+  const settingsDoc = await userRef
+    .collection('settings')
+    .doc('preferences')
+    .get();
+
+  const settings = settingsDoc.exists ? settingsDoc.data() : {};
+
+  if (
+    settings.emailNotifications !== true ||
+    settings.dueDateReminders !== true
+  ) {
+    throw new Error('Email or due-date reminders are disabled.');
+  }
+
+  const userRecord = await getAuth().getUser(uid);
+
+  if (!userRecord.email) {
+    throw new Error('User email is missing.');
+  }
+
+  const installmentDoc = await userRef
+    .collection('installments')
+    .doc(installmentId)
+    .get();
+
+  if (!installmentDoc.exists) {
+    throw new Error('Installment not found.');
+  }
+
+  const installment = {
+    id: installmentDoc.id,
+    ...installmentDoc.data(),
+  };
+
+  const dueDate = installment.nextDueDate || installment.dueDate;
+  const daysUntilDue = getDaysDifference(getToday(), dueDate);
+
+  if (
+    installment.status === 'paid' ||
+    Number(installment.totalPayments || 0) <= 0 ||
+    Number(installment.paidPayments || 0) >=
+      Number(installment.totalPayments || 0)
+  ) {
+    throw new Error('Installment is already paid or invalid.');
+  }
+
+  if (!REMINDER_DAYS.includes(daysUntilDue)) {
+    throw new Error(`Not an eligible reminder date: ${daysUntilDue} days.`);
+  }
+
+  await processReminder({
+    uid,
+    email: userRecord.email,
+    installment,
+    dueDate,
+    daysUntilDue,
+  });
+
+  console.log('Targeted reminder test completed.');
+};
+
 module.exports = {
   startReminderScheduler,
   checkInstallmentReminders,
+  testSingleInstallmentReminder,
 };
+

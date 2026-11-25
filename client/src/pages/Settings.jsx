@@ -48,6 +48,13 @@ function Settings() {
   const [showNameConfirmation, setShowNameConfirmation] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [notificationSaving, setNotificationSaving] = useState(false);
+const [notificationSaveSuccess, setNotificationSaveSuccess] = useState('');
+const [notificationSaveError, setNotificationSaveError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [openingBalanceError, setOpeningBalanceError] = useState('');
+  const [trackingDateError, setTrackingDateError] = useState('');
+  const [reserveLimitError, setReserveLimitError] = useState('');
   const [loadError, setLoadError] = useState('');
   const [selectedPicture, setSelectedPicture] = useState(null);
   const [picturePreview, setPicturePreview] = useState('');
@@ -114,110 +121,259 @@ function Settings() {
   }, [user]);
 
   const handleChange = (event) => {
-    const { name, value, type, checked } = event.target;
+  const { name, value, type, checked } = event.target;
 
+  setSettings((previous) => ({
+    ...previous,
+    [name]: type === 'checkbox' ? checked : value,
+  }));
+
+  if (name === 'email') {
+    setEmailError('');
+  }
+
+  if (name === 'openingBalance') {
+  setOpeningBalanceError('');
+}
+
+if (name === 'reserveLimit') {
+  setReserveLimitError('');
+}
+
+  if (name === 'fullName') {
+    setError('');
+  }
+
+  setSaved(false);
+};
+
+const handleNotificationToggle = async (event) => {
+  const { name, checked } = event.target;
+
+  const allowedFields = [
+    'emailNotifications',
+    'dueDateReminders',
+    'lowBalanceAlerts',
+  ];
+
+  if (!allowedFields.includes(name) || notificationSaving || saving) {
+    return;
+  }
+
+  const previousValue = settings[name];
+
+  // Update the toggle immediately.
+  setSettings((previous) => ({
+    ...previous,
+    [name]: checked,
+  }));
+
+  setNotificationSaveSuccess('');
+  setNotificationSaveError('');
+  setNotificationSaving(true);
+
+  try {
+    await apiRequest('/api/settings/notifications', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        [name]: checked,
+      }),
+    });
+
+    setNotificationSaveSuccess(
+      'Notification preferences saved successfully.'
+    );
+  } catch (err) {
+    // Restore the previous toggle value if saving fails.
     setSettings((previous) => ({
       ...previous,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: previousValue,
     }));
 
-    setSaved(false);
-    setError('');
-  };
+    setNotificationSaveError(
+      err.message || 'Unable to save notification preferences.'
+    );
+  } finally {
+    setNotificationSaving(false);
+  }
+};
 
   const handleTrackingDateChange = (date) => {
-    if (!date) return;
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
+  if (!date) {
     setSettings((previous) => ({
       ...previous,
-      trackingStartDate: `${year}-${month}-${day}`,
+      trackingStartDate: '',
     }));
 
+    setTrackingDateError('');
     setSaved(false);
-    setError('');
-  };
+    return;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  setSettings((previous) => ({
+    ...previous,
+    trackingStartDate: `${year}-${month}-${day}`,
+  }));
+
+  setTrackingDateError('');
+  setSaved(false);
+};
 
   // Save settings permanently through the backend.
-  const handleSubmit = async (event, confirmedNameChange = false) => {
-    event?.preventDefault();
+  
+const handleSubmit = async (event, confirmedNameChange = false) => {
+  event?.preventDefault();
 
-    const nameChanged =
-      settings.fullName.trim() !== (user?.displayName || '').trim();
+  // Clear previous validation errors
+  setError('');
+  setEmailError('');
+  setOpeningBalanceError('');
+  setTrackingDateError('');
+  setReserveLimitError('');
 
-      console.log('Entered name:', settings.fullName);
-      console.log('Current Firebase name:', user?.displayName);
-      console.log('Name changed:', nameChanged);
+  // Get and normalize form values
+  const fullName = settings.fullName.trim();
+  const email = settings.email.trim();
 
-    if (nameChanged && !confirmedNameChange) {
-      setShowNameConfirmation(true);
-      return;
-    }
+  const openingBalanceInput = settings.openingBalance.trim();
+  const reserveLimitInput = settings.reserveLimit.trim();
 
-    const openingBalance = Number(settings.openingBalance);
-    const reserveLimit = Number(settings.reserveLimit);
+  const openingBalance = Number(openingBalanceInput);
+  const reserveLimit = Number(reserveLimitInput);
 
-    if (
-      !Number.isFinite(openingBalance) ||
-      !Number.isFinite(reserveLimit) ||
-      openingBalance < 0 ||
-      reserveLimit < 0
-    ) {
-      setError('Financial amounts must be valid non-negative numbers.');
-      return;
-    }
+  // Validate Full Name and Email together
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  const nameIsInvalid = !fullName;
+  const emailIsInvalid = !email || !emailPattern.test(email);
+
+  if (nameIsInvalid) {
+    setError('Please enter your full name.');
+  }
+
+  if (emailIsInvalid) {
+    setEmailError(
+      !email
+        ? 'Please enter your email address.'
+        : 'Please enter a valid email address.'
+    );
+  }
+
+  
+  // Financial Preferences validation
+
+  const openingBalanceIsInvalid =
+    !openingBalanceInput ||
+    !Number.isFinite(openingBalance) ||
+    openingBalance < 0;
+
+  const reserveLimitIsInvalid =
+    !reserveLimitInput ||
+    !Number.isFinite(reserveLimit) ||
+    reserveLimit < 0;
+
+  const trackingDateIsInvalid = !settings.trackingStartDate;
+
+  if (openingBalanceIsInvalid) {
+    setOpeningBalanceError(
+      'Please enter a valid non-negative starting balance.'
+    );
+  }
+
+  if (reserveLimitIsInvalid) {
+    setReserveLimitError(
+      'Please enter a valid non-negative reserve limit.'
+    );
+  }
+
+  if (trackingDateIsInvalid) {
+    setTrackingDateError(
+      'Please select your tracking start date.'
+    );
+  }
+
+  // Stop saving only after checking ALL form fields
+if (
+  nameIsInvalid ||
+  emailIsInvalid ||
+  openingBalanceIsInvalid ||
+  reserveLimitIsInvalid ||
+  trackingDateIsInvalid
+) {
+  return;
+}
+
+  // Confirm profile name changes
+  const nameChanged =
+    fullName !== (user?.displayName || '').trim();
+
+  if (nameChanged && !confirmedNameChange) {
+    setShowNameConfirmation(true);
+    return;
+  }
+
+  try {
+    setSaving(true);
+    setSaved(false);
+    setError('');
+    setEmailError('');
+
+    const payload = {
+      fullName,
+      email,
+      openingBalance,
+      reserveLimit,
+      currency: settings.currency,
+      emailNotifications: settings.emailNotifications,
+      dueDateReminders: settings.dueDateReminders,
+      lowBalanceAlerts: settings.lowBalanceAlerts,
+      trackingStartDate: settings.trackingStartDate,
+    };
+
+    const response = await apiRequest('/api/settings', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+
+    // Refresh Firebase user information
     try {
-      setSaving(true);
-      setSaved(false);
-      setError('');
-
-      const payload = {
-        fullName: settings.fullName,
-        email: settings.email,
-        openingBalance,
-        reserveLimit,
-        currency: settings.currency,
-        emailNotifications: settings.emailNotifications,
-        dueDateReminders: settings.dueDateReminders,
-        lowBalanceAlerts: settings.lowBalanceAlerts,
-        trackingStartDate: settings.trackingStartDate,
-      };
-
-      const response = await apiRequest('/api/settings', {
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
-
-      // Refresh Firebase user information after saving the full name.
-      try {
-        await refreshUser();
-      } catch (refreshError) {
-        console.error('Unable to refresh user profile:', refreshError);
-      }
-
-      if (response.data) {
-        setSettings((previous) => ({
-          ...previous,
-          ...response.data,
-          openingBalance: String(response.data.openingBalance ?? openingBalance),
-          reserveLimit: String(response.data.reserveLimit ?? reserveLimit),
-          trackingStartDate:
-            response.data.trackingStartDate || settings.trackingStartDate,
-        }));
-      }
-
-      setSaved(true);
-      setShowNameConfirmation(false);
-    } catch (err) {
-      setError(err.message || 'Unable to save settings.');
-    } finally {
-      setSaving(false);
+      await refreshUser();
+    } catch (refreshError) {
+      console.error(
+        'Unable to refresh user profile:',
+        refreshError
+      );
     }
-  };
+
+    if (response.data) {
+      setSettings((previous) => ({
+        ...previous,
+        ...response.data,
+        openingBalance: String(
+          response.data.openingBalance ?? openingBalance
+        ),
+        reserveLimit: String(
+          response.data.reserveLimit ?? reserveLimit
+        ),
+        trackingStartDate:
+          response.data.trackingStartDate ||
+          settings.trackingStartDate,
+      }));
+    }
+
+    setSaved(true);
+    setShowNameConfirmation(false);
+
+  } catch (err) {
+    setError(err.message || 'Unable to save settings.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handlePasswordChange = async (event) => {
     event.preventDefault();
@@ -310,38 +466,44 @@ function Settings() {
   setPicturePreview(URL.createObjectURL(file));
 };
 
-  const handlePictureUpload = async () => {
-    if (!selectedPicture) {
-      setPictureError('Please select a picture first.');
-      return;
-    }
+const handlePictureUpload = async () => {
+  if (!selectedPicture) {
+    setPictureError('Please select a picture first.');
+    return false;
+  }
 
-    try {
-      setUploadingPicture(true);
-      setPictureError('');
-      setPictureSuccess('');
+  try {
+    setUploadingPicture(true);
+    setPictureError('');
+    setPictureSuccess('');
 
-      const formData = new FormData();
-      formData.append('profilePicture', selectedPicture);
+    const formData = new FormData();
+    formData.append('profilePicture', selectedPicture);
 
-      const response = await apiRequest('/api/profile/picture', {
-        method: 'POST',
-        body: formData,
-      });
+    const response = await apiRequest('/api/profile/picture', {
+      method: 'POST',
+      body: formData,
+    });
 
-      await updateUserProfile({
-        photoURL: response.data.photoURL,
-      });
+    await updateUserProfile({
+      photoURL: response.data.photoURL,
+    });
 
-      setSelectedPicture(null);
-      setPicturePreview('');
-      setPictureSuccess('Profile picture updated successfully.');
-    } catch (err) {
-      setPictureError(err.message || 'Unable to upload profile picture.');
-    } finally {
-      setUploadingPicture(false);
-    }
-  };
+    setSelectedPicture(null);
+    setPicturePreview('');
+    setPictureSuccess('Profile picture updated successfully.');
+
+    return true;
+  } catch (err) {
+    setPictureError(
+      err.message || 'Unable to upload profile picture.'
+    );
+
+    return false;
+  } finally {
+    setUploadingPicture(false);
+  }
+};
 
   if (loading) {
     return (
@@ -377,8 +539,8 @@ function Settings() {
 )}
     
       {!loadError && (
-      <form onSubmit={handleSubmit}>
-        <div className="form-card settings-card">
+      <form onSubmit={handleSubmit} noValidate>
+        <div className="form-card settings-card profile-information-card">
           <h3>Profile Information</h3>
           <p className="settings-description">
             Manage your personal account information.
@@ -425,37 +587,74 @@ function Settings() {
                 <p className="settings-saved">{pictureSuccess}</p>
               )}
             </div>
-          </div>
-
-
+          </div>    
           <div className="form-grid">
-            <label>
-              Full Name
-              <input
-                type="text"
-                name="fullName"
-                value={settings.fullName}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                required
-              />
-            </label>
+  <label className="profile-form-field">
+    Full Name
 
-            <label>
-              Email Address
-              <input
-                type="email"
-                name="email"
-                value={settings.email}
-                onChange={handleChange}
-                placeholder="Enter your email address"
-              />
-            </label>
+    <input
+      type="text"
+      name="fullName"
+      value={settings.fullName}
+      onChange={handleChange}
+      placeholder="Enter your full name"
+      required
+      aria-invalid={!!error}
+    />
+
+    {error && (
+      <span className="profile-field-error" role="alert">
+        {error}
+      </span>
+    )}
+  </label>
+
+  <label className="profile-form-field">
+    Email Address
+
+    <input
+      type="email"
+      name="email"
+      value={settings.email}
+      onChange={handleChange}
+      placeholder="Enter your email address"
+      required
+      aria-invalid={!!emailError}
+      aria-describedby={emailError ? 'email-error' : undefined}
+    />
+
+    {emailError && (
+      <span
+        id="email-error"
+        className="profile-field-error"
+        role="alert"
+      >
+        {emailError}
+      </span>
+    )}
+  </label>
+</div>
+
+          <div className="settings-actions profile-save-actions">
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Save Settings'}
+            </button>
           </div>
+          
+        {saved && (
+          <div className="profile-save-success" role="status">
+            <span className="profile-success-icon">✓</span>
+            Settings saved successfully!
+          </div>
+        )}
         </div>
 
         {/* Account Security */}
-        <div className="form-card settings-card">
+        <div className="form-card settings-card account-security-card">
           <div className="settings-card-header">
             <div>
               <h2>Account Security</h2>
@@ -483,8 +682,22 @@ function Settings() {
                     type="button"
                     className="password-toggle"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    aria-label={showCurrentPassword ? "Hide password" : "Show password"}
                   >
-                    {showCurrentPassword ? "Hide" : "Show"}
+                    {showCurrentPassword ? (
+                      <svg viewBox="0 0 24 24" width="21" height="21" fill="none"
+                        stroke="currentColor" strokeWidth="1.8">
+                        <path d="M3 3l18 18" />
+                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                        <path d="M9.9 5.2A11 11 0 0 1 12 5c5 0 9 5 9 7s-4 7-9 7a10 10 0 0 1-5.2-1.5" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="21" height="21" fill="none"
+                        stroke="currentColor" strokeWidth="1.8">
+                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -498,13 +711,29 @@ function Settings() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
                   />
+                  
                   <button
                     type="button"
                     className="password-toggle"
                     onClick={() => setShowNewPassword(!showNewPassword)}
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
                   >
-                    {showNewPassword ? "Hide" : "Show"}
+                    {showNewPassword ? (
+                      <svg viewBox="0 0 24 24" width="21" height="21"
+                        fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M3 3l18 18" />
+                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                        <path d="M9.9 5.2A11 11 0 0 1 12 5c5 0 9 5 9 7s-4 7-9 7a10 10 0 0 1-5.2-1.5" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="21" height="21"
+                        fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
                   </button>
+
                 </div>
               </div>
 
@@ -533,15 +762,29 @@ function Settings() {
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     placeholder="Confirm new password"
                   />
+                  
                   <button
                     type="button"
                     className="password-toggle"
-                    onClick={() =>
-                      setShowConfirmNewPassword(!showConfirmNewPassword)
-                    }
+                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                    aria-label={showConfirmNewPassword ? "Hide password" : "Show password"}
                   >
-                    {showConfirmNewPassword ? "Hide" : "Show"}
+                    {showConfirmNewPassword ? (
+                      <svg viewBox="0 0 24 24" width="21" height="21"
+                        fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M3 3l18 18" />
+                        <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                        <path d="M9.9 5.2A11 11 0 0 1 12 5c5 0 9 5 9 7s-4 7-9 7a10 10 0 0 1-5.2-1.5" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" width="21" height="21"
+                        fill="none" stroke="currentColor" strokeWidth="1.8">
+                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
                   </button>
+
                 </div>
               </div>
 
@@ -614,52 +857,84 @@ function Settings() {
           </p>
 
           <div className="form-grid">
-            <label>
-              Starting Balance (₱)
-              <input
-                type="number"
-                name="openingBalance"
-                value={settings.openingBalance}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                required
-              />
-            </label>
+            
+<label className="profile-form-field">
+  Starting Balance (₱)
 
-            <label>
-              Tracking Start Date
-              <DatePicker
-                selected={
-                  settings.trackingStartDate
-                    ? new Date(`${settings.trackingStartDate}T00:00:00`)
-                    : null
-                }
-                onChange={handleTrackingDateChange}
-                dateFormat="MM/dd/yyyy"
-                placeholderText="Select tracking start date"
-                className="duewise-datepicker"
-                calendarClassName="duewise-calendar"
-                showPopperArrow={false}
-                required
-              />
-              <small>
-                The date you started tracking your finances in DueWise.
-              </small>
-            </label>
+  <input
+    type="number"
+    name="openingBalance"
+    value={settings.openingBalance}
+    onChange={handleChange}
+    min="0"
+    step="0.01"
+    required
+    aria-invalid={!!openingBalanceError}
+  />
 
-            <label>
-              Minimum Reserve Limit (₱)
-              <input
-                type="number"
-                name="reserveLimit"
-                value={settings.reserveLimit}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                required
-              />
-            </label>
+  {openingBalanceError && (
+    <span className="profile-field-error" role="alert">
+      {openingBalanceError}
+    </span>
+  )}
+</label>
+
+            
+<label className="profile-form-field">
+  Tracking Start Date
+
+  <DatePicker
+  selected={
+    settings.trackingStartDate
+      ? new Date(`${settings.trackingStartDate}T00:00:00`)
+      : null
+  }
+  onChange={handleTrackingDateChange}
+  dateFormat="MM/dd/yyyy"
+  placeholderText="Select tracking start date"
+  className={`duewise-datepicker ${
+    trackingDateError ? 'financial-input-error' : ''
+  }`}
+  calendarClassName="duewise-calendar"
+  showPopperArrow={false}
+  isClearable
+  clearButtonTitle="Clear tracking start date"
+  required
+  ariaInvalid={!!trackingDateError}
+/>
+
+  <small>
+    The date you started tracking your finances in DueWise.
+  </small>
+
+  {trackingDateError && (
+    <span className="profile-field-error" role="alert">
+      {trackingDateError}
+    </span>
+  )}
+</label>
+
+            
+<label className="profile-form-field">
+  Minimum Reserve Limit (₱)
+
+  <input
+    type="number"
+    name="reserveLimit"
+    value={settings.reserveLimit}
+    onChange={handleChange}
+    min="0"
+    step="0.01"
+    required
+    aria-invalid={!!reserveLimitError}
+  />
+
+  {reserveLimitError && (
+    <span className="profile-field-error" role="alert">
+      {reserveLimitError}
+    </span>
+  )}
+</label>
 
             <label>
               Currency
@@ -671,6 +946,23 @@ function Settings() {
                 <option value="PHP">PHP - Philippine Peso (₱)</option>
               </select>
             </label>
+          </div>
+          <div className="settings-actions financial-save-actions">
+            <div className="financial-save-feedback">
+              {saved && (
+                <span className="settings-saved" role="status">
+                  ✓ Settings saved successfully
+                </span>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              className="primary-button"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Save Preferences'}
+            </button>
           </div>
         </div>
 
@@ -690,7 +982,8 @@ function Settings() {
               type="checkbox"
               name="emailNotifications"
               checked={settings.emailNotifications}
-              onChange={handleChange}
+              onChange={handleNotificationToggle}
+              disabled={notificationSaving || saving}
             />
           </div>
 
@@ -704,7 +997,8 @@ function Settings() {
               type="checkbox"
               name="dueDateReminders"
               checked={settings.dueDateReminders}
-              onChange={handleChange}
+              onChange={handleNotificationToggle}
+              disabled={notificationSaving || saving}
             />
           </div>
 
@@ -718,29 +1012,29 @@ function Settings() {
               type="checkbox"
               name="lowBalanceAlerts"
               checked={settings.lowBalanceAlerts}
-              onChange={handleChange}
+              onChange={handleNotificationToggle}
+              disabled={notificationSaving || saving}
             />
           </div>
-        </div>
+          <div className="notification-save-feedback" aria-live="polite">
+            {notificationSaving && (
+              <span className="notification-saving">
+                Saving notification preferences...
+              </span>
+            )}
 
-        <div className="settings-actions">
-          {error && (
-            <span className="settings-error">{error}</span>
-          )}
+            {!notificationSaving && notificationSaveSuccess && (
+              <span className="notification-save-success">
+                ✓ {notificationSaveSuccess}
+              </span>
+            )}
 
-          {saved && (
-            <span className="settings-saved">
-              Settings saved successfully!
-            </span>
-          )}
-
-          <button
-            type="submit"
-            className="primary-button"
-            disabled={saving}
-          >
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
+            {!notificationSaving && notificationSaveError && (
+              <span className="notification-save-error" role="alert">
+                {notificationSaveError}
+              </span>
+            )}
+          </div>
         </div>
       </form>
       )}
@@ -792,17 +1086,7 @@ function Settings() {
       )}
 
       {showPictureModal && (
-        <div
-          className="picture-modal-overlay"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              setShowPictureModal(false);
-              setSelectedPicture(null);
-              setPicturePreview('');
-              setPictureError('');
-            }
-          }}
-        >
+        <div className="picture-modal-overlay">
           <div className="picture-modal">
             <button
               type="button"
@@ -920,9 +1204,9 @@ function Settings() {
                 className="change-picture-button"
                 disabled={uploadingPicture}
                 onClick={async () => {
-                  await handlePictureUpload();
+                  const success = await handlePictureUpload();
 
-                  if (!pictureError) {
+                  if (success) {
                     setShowPictureConfirmation(false);
                   }
                 }}

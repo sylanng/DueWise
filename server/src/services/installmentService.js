@@ -176,80 +176,94 @@ const recordInstallmentPayment = async (uid, installmentId) => {
     }
 
     
-const amountPerPayment = Number(data.amountPerPayment);
-const totalAmount = Number(data.totalAmount);
+    const amountPerPayment = Number(data.amountPerPayment);
+    const totalAmount = Number(data.totalAmount);
 
-if (
-  !Number.isFinite(amountPerPayment) ||
-  amountPerPayment <= 0 ||
-  !Number.isFinite(totalAmount) ||
-  totalAmount <= 0
-) {
-  throw new Error('Invalid installment payment amount.');
-}
+    if (
+      !Number.isFinite(amountPerPayment) ||
+      amountPerPayment <= 0 ||
+      !Number.isFinite(totalAmount) ||
+      totalAmount <= 0
+    ) {
+      throw new Error('Invalid installment payment amount.');
+    }
 
-const roundMoney = (amount) =>
-  Math.round((amount + Number.EPSILON) * 100) / 100;
+    const roundMoney = (amount) =>
+      Math.round((amount + Number.EPSILON) * 100) / 100;
 
-const amountAlreadyPaid = roundMoney(
-  paidPayments * amountPerPayment
-);
+    const amountAlreadyPaid = roundMoney(
+      paidPayments * amountPerPayment
+    );
 
-const remainingAmount = roundMoney(
-  totalAmount - amountAlreadyPaid
-);
+    const remainingAmount = roundMoney(
+      totalAmount - amountAlreadyPaid
+    );
 
-if (remainingAmount <= 0) {
-  throw new Error('No remaining installment balance.');
-}
+    if (remainingAmount <= 0) {
+      throw new Error('No remaining installment balance.');
+    }
 
-const newPaidPayments = paidPayments + 1;
-const isCompleted = newPaidPayments >= totalPayments;
+    const newPaidPayments = paidPayments + 1;
+    const isCompleted = newPaidPayments >= totalPayments;
 
-const paymentAmount = isCompleted
-  ? remainingAmount
-  : Math.min(amountPerPayment, remainingAmount);
+    const paymentAmount = isCompleted
+      ? remainingAmount
+      : Math.min(amountPerPayment, remainingAmount);
 
 
-    const paymentDate = new Date();
-    const paidAt = paymentDate.toISOString();
+        const paymentDate = new Date();
+        const paidAt = paymentDate.toISOString();
 
-    const nextDueDate = isCompleted
-      ? data.nextDueDate || data.dueDate
-      : getNextDueDate(
-          data.nextDueDate || data.dueDate,
-          data.paymentFrequency
+        const nextDueDate = isCompleted
+          ? data.nextDueDate || data.dueDate
+          : getNextDueDate(
+              data.nextDueDate || data.dueDate,
+              data.paymentFrequency
+            );
+
+        const updatedData = {
+          paidPayments: newPaidPayments,
+          status: isCompleted ? 'paid' : 'partially_paid',
+          nextDueDate,
+          updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        const paymentRef = transactionsRef.doc();
+
+        const paymentRecord = {
+          installmentId,
+          description: data.description || 'Installment Payment',
+          provider: data.provider || 'Unknown Provider',
+          amount: paymentAmount,
+          status: 'paid',
+          paidAt,
+          createdAt: FieldValue.serverTimestamp(),
+        };
+
+        transaction.update(documentRef, updatedData);
+        transaction.set(paymentRef, paymentRecord);
+
+        const remainingAmountAfterPayment = roundMoney(
+          remainingAmount - paymentAmount
         );
 
-    const updatedData = {
-      paidPayments: newPaidPayments,
-      status: isCompleted ? 'paid' : 'partially_paid',
-      nextDueDate,
-      updatedAt: FieldValue.serverTimestamp(),
-    };
+        return {
+          id: document.id,
+          ...data,
+          ...updatedData,
 
-    const paymentRef = transactionsRef.doc();
+          // Details of the payment just recorded
+          paymentAmount,
+          paymentDate: paidAt,
+          remainingAmount: remainingAmountAfterPayment,
 
-    const paymentRecord = {
-      installmentId,
-      description: data.description || 'Installment Payment',
-      provider: data.provider || 'Unknown Provider',
-      amount: paymentAmount,
-      status: 'paid',
-      paidAt,
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    transaction.update(documentRef, updatedData);
-    transaction.set(paymentRef, paymentRecord);
-
-    return {
-      id: document.id,
-      ...data,
-      ...updatedData,
-    };
-  });
-};
+          // Updated payment progress
+          paidPayments: newPaidPayments,
+          totalPayments,
+          totalAmount,
+        };
+    });
+  };
 
 // DELETE: Remove an installment
 const deleteInstallment = async (uid, installmentId) => {

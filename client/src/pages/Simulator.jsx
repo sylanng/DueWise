@@ -18,8 +18,15 @@ export default function Simulator() {
   const [running, setRunning] = useState(false);
 
   const change = (field) => (e) => {
-    setValues((v) => ({ ...v, [field]: e.target.value }));
-    setErrors((errs) => ({ ...errs, [field]: undefined }));
+    setValues((previous) => ({
+      ...previous,
+      [field]: e.target.value,
+    }));
+
+    setErrors((previous) => ({
+      ...previous,
+      [field]: '',
+    }));
   };
 
   async function handleSubmit(e) {
@@ -139,13 +146,25 @@ function Results({ result, plan }) {
           label="Lowest balance now"
           value={formatPeso(baseline.amount)}
           sub={formatDate(baseline.date)}
-          tone={baselineWarning ? 'danger' : 'success'}
+          tone={
+            baseline.amount < 0
+              ? 'danger'
+              : baselineWarning
+                ? 'warning'
+                : 'success'
+          }
         />
         <SummaryCard
           label="Lowest balance with this plan"
           value={formatPeso(simulated.amount)}
           sub={formatDate(simulated.date)}
-          tone={simulatedWarning ? 'danger' : 'success'}
+          tone={
+            simulated.amount < 0
+              ? 'danger'
+              : simulatedWarning
+                ? 'warning'
+                : 'success'
+          }
         />
         <SummaryCard label="Drop in lowest balance" value={formatPeso(impact)} sub="Now minus with this plan" />
         <SummaryCard

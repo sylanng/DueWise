@@ -61,7 +61,71 @@ const updateUserSettings = async (req, res) => {
   }
 };
 
+const updateNotificationPreferences = async (req, res) => {
+  try {
+    const allowedNotificationFields = [
+      'emailNotifications',
+      'dueDateReminders',
+      'lowBalanceAlerts',
+    ];
+
+    const updates = req.body;
+
+    if (
+      !updates ||
+      typeof updates !== 'object' ||
+      Array.isArray(updates)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid notification preferences.',
+      });
+    }
+
+    const fields = Object.keys(updates);
+
+    if (
+      fields.length === 0 ||
+      fields.some((field) => !allowedNotificationFields.includes(field))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid notification preference fields.',
+      });
+    }
+
+    for (const field of fields) {
+      if (typeof updates[field] !== 'boolean') {
+        return res.status(400).json({
+          success: false,
+          message: `${field} must be true or false.`,
+        });
+      }
+    }
+
+    const settings = await saveSettings(req.user.uid, updates);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notification preferences updated successfully.',
+      data: {
+        emailNotifications: settings.emailNotifications ?? true,
+        dueDateReminders: settings.dueDateReminders ?? true,
+        lowBalanceAlerts: settings.lowBalanceAlerts ?? true,
+      },
+    });
+  } catch (error) {
+    console.error('Update Notification Preferences Error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update notification preferences.',
+    });
+  }
+};
+
 module.exports = {
   getUserSettings,
   updateUserSettings,
+  updateNotificationPreferences,
 };

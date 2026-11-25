@@ -123,13 +123,34 @@ const checkInstallmentReminders = async () => {
               return false;
             }
 
+            const installmentName =
+              installment.description || installment.provider || 'Your installment';
+
+            const reminderTitle =
+              daysUntilDue === 0
+                ? 'Payment Due Today'
+                : daysUntilDue === 1
+                  ? 'Payment Due Tomorrow'
+                  : 'Payment Due in 5 Days';
+
+            const reminderMessage =
+              daysUntilDue === 0
+                ? `Your payment for ${installmentName} is due today.`
+                : daysUntilDue === 1
+                  ? `Your payment for ${installmentName} is due tomorrow.`
+                  : `Your payment for ${installmentName} is due in 5 days.`;
+
             transaction.create(notificationRef, {
               type: 'due_date_reminder',
+              title: reminderTitle,
+              message: reminderMessage,
               installmentId: installment.id,
               dueDate,
               daysUntilDue,
+              read: false,
               status: 'sending',
               createdAt: new Date(),
+              updatedAt: new Date(),
             });
 
             return true;

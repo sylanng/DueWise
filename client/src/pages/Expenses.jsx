@@ -39,6 +39,7 @@ function Expenses() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [selectedExpenseId, setSelectedExpenseId] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const selectedExpense = expenses.find(
     (item) => item.id === selectedExpenseId
@@ -81,51 +82,101 @@ const loadExpenses = async () => {
     0
   );
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const currentMonthKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+  }).format(new Date());
 
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
+  const monthlyExpenses = expenses
+    .filter((item) => String(item.date || '').slice(0, 7) === currentMonthKey)
+    .reduce((total, item) => total + Number(item.amount || 0), 0);
+
+  const handleChange = (event) => {
+  const { name, value } = event.target;
+
+  setForm((previous) => ({
+    ...previous,
+    [name]: value,
+  }));
+
+  setFieldErrors((previous) => ({
+    ...previous,
+    [name]: '',
+  }));
+};
 
   const handleExpenseDateChange = (date) => {
-    if (!date) {
-      setForm((previous) => ({
-        ...previous,
-        date: '',
-      }));
-      return;
-    }
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
+  if (!date) {
     setForm((previous) => ({
       ...previous,
-      date: `${year}-${month}-${day}`,
+      date: '',
     }));
-  };
+
+    setFieldErrors((previous) => ({
+      ...previous,
+      date: '',
+    }));
+
+    return;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  setForm((previous) => ({
+    ...previous,
+    date: `${year}-${month}-${day}`,
+  }));
+
+  setFieldErrors((previous) => ({
+    ...previous,
+    date: '',
+  }));
+};
+
+  const validateForm = () => {
+  const errors = {};
+
+  if (!form.title.trim()) {
+    errors.title = 'Please enter the expense name.';
+  }
+
+  if (!form.category) {
+    errors.category = 'Please select an expense category.';
+  }
+
+  const amount = Number(form.amount);
+
+  if (form.amount === '') {
+    errors.amount = 'Please enter the expense amount.';
+  } else if (!Number.isFinite(amount) || amount <= 0) {
+    errors.amount = 'Amount must be greater than ₱0.';
+  }
+
+  if (!form.date) {
+    errors.date = 'Please select the expense date.';
+  } else if (
+    Number.isNaN(new Date(`${form.date}T00:00:00`).getTime())
+  ) {
+    errors.date = 'Please select a valid expense date.';
+  }
+
+  setFieldErrors(errors);
+  return Object.keys(errors).length === 0;
+};
 
   // ADD OR UPDATE EXPENSE
   // OPEN CONFIRMATION BEFORE ADDING OR UPDATING
 const handleSubmit = (event) => {
   event.preventDefault();
 
-  const amount = Number(form.amount);
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    alert('Please enter an amount greater than zero.');
+  if (!validateForm()) {
     return;
   }
 
-  if (!form.title.trim() || !form.date) {
-    alert('Please complete the required fields.');
-    return;
-  }
-
+  setError('');
   setShowConfirm(true);
 };
 
@@ -210,6 +261,7 @@ const handleConfirmDelete = async () => {
     setForm(emptyForm);
     setEditingId(null);
     setShowForm(false);
+    setFieldErrors({});
   };
 
   // SEARCH AND CATEGORY FILTER
@@ -252,6 +304,7 @@ const handleConfirmDelete = async () => {
           onClick={() => {
             setForm(emptyForm);
             setEditingId(null);
+            setFieldErrors({});
             setShowForm(true);
             setError('');
           }}
@@ -292,6 +345,11 @@ const handleConfirmDelete = async () => {
         </div>
 
         <div className="module-stat">
+          <span>Expenses This Month</span>
+          <strong>{formatCurrency(monthlyExpenses)}</strong>
+        </div>
+
+        <div className="module-stat">
           <span>Highest Spending Category</span>
           <strong>{highestCategory.name}</strong>
         </div>
@@ -299,14 +357,7 @@ const handleConfirmDelete = async () => {
 
       
 {showForm && (
-  <div
-    className="installment-modal-overlay"
-    onMouseDown={(event) => {
-      if (event.target === event.currentTarget && !saving) {
-        handleCancel();
-      }
-    }}
-  >
+  <div className="installment-modal-overlay">
     <div
       className="installment-modal"
       role="dialog"
@@ -333,7 +384,7 @@ const handleConfirmDelete = async () => {
       </div>
 
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="form-grid">
               <label>
                 Expense Name
@@ -343,24 +394,40 @@ const handleConfirmDelete = async () => {
                   value={form.title}
                   onChange={handleChange}
                   placeholder="e.g. Grocery Shopping"
-                  required
+                  aria-invalid={Boolean(fieldErrors.title)}
                 />
+
+                {fieldErrors.title && (
+                  <span className="field-error">{fieldErrors.title}</span>
+                )}
               </label>
 
               <label>
                 Category
-                <select
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  required
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                <div className="expense-category-control">
+                  <CustomDropdown
+                    value={form.category}
+                    options={categories.map((category) => ({
+                      value: category,
+                      label: category,
+                    }))}
+                    onChange={(value) => {
+                      setForm((previous) => ({
+                        ...previous,
+                        category: value,
+                      }));
+
+                      setFieldErrors((previous) => ({
+                        ...previous,
+                        category: '',
+                      }));
+                    }}
+                  />
+                </div>
+
+                {fieldErrors.category && (
+                  <span className="field-error">{fieldErrors.category}</span>
+                )}
               </label>
 
               <label>
@@ -373,8 +440,12 @@ const handleConfirmDelete = async () => {
                   min="0.01"
                   step="0.01"
                   placeholder="e.g. 500"
-                  required
+                  aria-invalid={Boolean(fieldErrors.amount)}
                 />
+
+                {fieldErrors.amount && (
+                  <span className="field-error">{fieldErrors.amount}</span>
+                )}
               </label>
 
               <label>
@@ -391,8 +462,12 @@ const handleConfirmDelete = async () => {
                   className="duewise-datepicker"
                   calendarClassName="duewise-calendar"
                   showPopperArrow={false}
-                  required
+                  ariaInvalid={Boolean(fieldErrors.date)}
                 />
+
+                {fieldErrors.date && (
+                  <span className="field-error">{fieldErrors.date}</span>
+                )}
               </label>
 
               <label>

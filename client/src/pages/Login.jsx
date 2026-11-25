@@ -1,7 +1,10 @@
 
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getPasswordRequirements, getPasswordStrength} from "../utils/passwordUtils";
+import {
+  getPasswordRequirements,
+  getPasswordStrength,
+} from "../utils/passwordUtils";
 import LoadingScreen from "../components/LoadingScreen";
 import DueWiseLogo from "../components/DueWiseLogo";
 
@@ -21,6 +24,7 @@ function Login() {
     registerWithEmail,
     resetPassword,
     logout,
+    resendVerificationEmail,
   } = useAuth();
 
   const [error, setError] = useState("");
@@ -28,12 +32,17 @@ function Login() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [loggingIn, setLoggingIn] = useState(false);
   const [mode, setMode] = useState("login");
+  const [authLoadingMessage, setAuthLoadingMessage] = useState("");
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [verificationPending, setVerificationPending] = useState(false);
+
   const passwordRequirements = getPasswordRequirements(password);
   const passwordStrength = getPasswordStrength(password);
 
@@ -74,15 +83,32 @@ function Login() {
 
   const handleGoogleLogin = async () => {
     const startTime = Date.now();
+
     try {
       setError("");
+      setSuccessMessage("");
+      setAuthLoadingMessage("Connecting securely to Google...");
       setLoggingIn(true);
-      await loginWithGoogle();
+
+      const { isNewUser } = await loginWithGoogle();
+
+      setAuthLoadingMessage(
+        isNewUser
+          ? "Creating your DueWise account..."
+          : "Signing in to DueWise..."
+      );
     } catch (err) {
-      setError("Google sign-in failed. Please try again.");
+      console.error("Google authentication error:", err);
+
+      setError(
+        err.code === "auth/popup-closed-by-user"
+          ? "Google sign-in was cancelled."
+          : "Google sign-in failed. Please try again."
+      );
     } finally {
       await keepLoadingVisible(startTime);
       setLoggingIn(false);
+      setAuthLoadingMessage("");
     }
   };
 
@@ -90,10 +116,10 @@ function Login() {
     event.preventDefault();
 
     setError("");
+    setSuccessMessage("");
+    setVerificationPending(false);
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     const startTime = Date.now();
 
@@ -103,30 +129,43 @@ function Login() {
       if (mode === "register") {
         await registerWithEmail(email, password, fullName.trim());
 
-        await logout();
-
         setMode("login");
         setPassword("");
         setConfirmPassword("");
         setFullName("");
         setFieldErrors({});
+        setVerificationPending(true);
+
         setSuccessMessage(
-          "Your DueWise account has been created successfully! Please sign in."
+          "Your DueWise account has been created! A verification email has been sent. Please check your inbox before signing in."
         );
       } else {
         await loginWithEmail(email, password);
       }
     } catch (err) {
-      const messages = {
-        "auth/email-already-in-use": "This email is already registered.",
-        "auth/invalid-email": "Please enter a valid email address.",
-        "auth/invalid-credential": "Incorrect email or password.",
-        "auth/weak-password": "Please use a stronger password.",
-        "auth/user-not-found": "No account found with this email.",
-        "auth/wrong-password": "Incorrect email or password.",
-      };
+      console.error("Email authentication error:", err);
 
-      setError(messages[err.code] || err.message || "Authentication failed.");
+      if (err.code === "auth/email-not-verified") {
+        setVerificationPending(true);
+        setError(
+          "Your email address is not verified yet. Please check your inbox or resend the verification email."
+        );
+      } else {
+        const messages = {
+          "auth/email-already-in-use": "This email is already registered.",
+          "auth/invalid-email": "Please enter a valid email address.",
+          "auth/invalid-credential": "Incorrect email or password.",
+          "auth/weak-password": "Please use a stronger password.",
+          "auth/user-not-found": "No account found with this email.",
+          "auth/wrong-password": "Incorrect email or password.",
+          "auth/too-many-requests":
+            "Too many attempts. Please try again later.",
+        };
+
+        setError(
+          messages[err.code] || err.message || "Authentication failed."
+        );
+      }
     } finally {
       await keepLoadingVisible(startTime);
       setLoggingIn(false);
@@ -139,28 +178,67 @@ function Login() {
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     try {
       setError("");
+      setSuccessMessage("");
       setLoggingIn(true);
 
       await resetPassword(email);
 
-      setError("Password reset email sent. Please check your inbox.");
+      setSuccessMessage(
+        "Password reset email sent. Please check your inbox."
+      );
     } catch (err) {
+      console.error("Password reset error:", err);
       setError(err.message || "Unable to send password reset email.");
     } finally {
       setLoggingIn(false);
     }
   };
+
+  const handleResendVerification = async () => {
+    if (!email.trim() || !password) {
+      setError(
+        "Please enter your email address and password first so we can resend your verification email."
+      );
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccessMessage("");
+      setLoggingIn(true);
+
+      await resendVerificationEmail(email.trim(), password);
+
+      setSuccessMessage(
+        "A new verification email has been sent. Please check your inbox."
+      );
+    } catch (err) {
+      console.error("Resend verification error:", err);
+      setError(
+        err.message || "Unable to resend the verification email."
+      );
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
   if (loggingIn) {
     return (
       <LoadingScreen
         message={
-          mode === "register"
+          authLoadingMessage ||
+          (mode === "register"
             ? "Creating your DueWise account..."
             : mode === "forgot"
             ? "Sending password reset email..."
-            : "Signing you in..."
+            : "Signing in to DueWise...")
         }
       />
     );
@@ -169,12 +247,13 @@ function Login() {
   const changeMode = (newMode) => {
     setMode(newMode);
     setError("");
+    setSuccessMessage("");
     setPassword("");
     setConfirmPassword("");
+    setFieldErrors({});
+    setVerificationPending(false);
   };
 
-  
-  
   return (
     <div className="auth-page">
       <div
@@ -251,8 +330,7 @@ function Login() {
         </section>
 
         <section className="auth-form-section">
-          <div className="auth-card">
-
+          <div key={mode} className="auth-card auth-card-transition">
             <div className="auth-mobile-brand">
               <DueWiseLogo size="normal" showText={true} />
             </div>
@@ -288,6 +366,7 @@ function Login() {
                 {error}
               </div>
             )}
+
             {successMessage && (
               <div className="auth-success" role="status">
                 <span>✓</span>
@@ -300,10 +379,10 @@ function Login() {
               className="auth-form"
               noValidate
             >
-
               {mode === "register" && (
                 <label>
                   Full Name
+
                   <input
                     type="text"
                     placeholder="Enter your full name"
@@ -329,7 +408,8 @@ function Login() {
               )}
 
               <label>
-                Email Address               
+                Email Address
+
                 <input
                   type="email"
                   placeholder="name@example.com"
@@ -356,6 +436,7 @@ function Login() {
               {mode !== "forgot" && (
                 <label>
                   Password
+
                   <div className="password-input-wrapper">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -375,8 +456,12 @@ function Login() {
                     <button
                       type="button"
                       className="password-toggle"
-                      onClick={() => setShowPassword((previous) => !previous)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      onClick={() =>
+                        setShowPassword((previous) => !previous)
+                      }
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -404,11 +489,14 @@ function Login() {
                       </svg>
                     </button>
                   </div>
+
                   {mode === "register" && password && (
                     <div className="password-strength">
                       <div className="password-strength-heading">
                         <span>Password strength</span>
-                        <strong className={`strength-${passwordStrength.label.toLowerCase()}`}>
+                        <strong
+                          className={`strength-${passwordStrength.label.toLowerCase()}`}
+                        >
                           {passwordStrength.label}
                         </strong>
                       </div>
@@ -432,15 +520,20 @@ function Login() {
                         {passwordRequirements.map((requirement) => (
                           <div
                             key={requirement.label}
-                            className={requirement.met ? "requirement-met" : ""}
+                            className={
+                              requirement.met ? "requirement-met" : ""
+                            }
                           >
-                            <span>{requirement.met ? "✓" : "○"}</span>
+                            <span>
+                              {requirement.met ? "✓" : "○"}
+                            </span>
                             {requirement.label}
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
+
                   {fieldErrors.password && (
                     <span className="duewise-field-error" role="alert">
                       <span className="error-icon">!</span>
@@ -453,12 +546,15 @@ function Login() {
               {mode === "register" && (
                 <label>
                   Confirm Password
+
                   <div className="password-input-wrapper">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
                       value={confirmPassword}
-                      className={fieldErrors.confirmPassword ? "input-error" : ""}
+                      className={
+                        fieldErrors.confirmPassword ? "input-error" : ""
+                      }
                       onChange={(event) => {
                         setConfirmPassword(event.target.value);
                         setFieldErrors((previous) => ({
@@ -507,6 +603,7 @@ function Login() {
                       </svg>
                     </button>
                   </div>
+
                   {fieldErrors.confirmPassword && (
                     <span className="duewise-field-error" role="alert">
                       <span className="error-icon">!</span>
@@ -534,7 +631,7 @@ function Login() {
                   onClick={handleForgotPassword}
                   disabled={loggingIn}
                 >
-                  {loggingIn ? "Sending..." : "Send Reset Link"}
+                  Send Reset Link
                   <span>→</span>
                 </button>
               ) : (
@@ -543,15 +640,22 @@ function Login() {
                   className="auth-primary-button"
                   disabled={loggingIn}
                 >
-                  {loggingIn
-                    ? "Please wait..."
-                    : mode === "login"
-                    ? "Sign In"
-                    : "Create Account"}
+                  {mode === "login" ? "Sign In" : "Create Account"}
                   <span>→</span>
                 </button>
               )}
             </form>
+
+            {verificationPending && (
+              <button
+                type="button"
+                className="auth-resend-button"
+                onClick={handleResendVerification}
+                disabled={loggingIn}
+              >
+                Resend verification email
+              </button>
+            )}
 
             {mode !== "forgot" && (
               <>
@@ -592,6 +696,17 @@ function Login() {
                   Continue with Google
                 </button>
               </>
+            )}
+
+            {mode === "forgot" && (
+              <div className="auth-forgot-row">
+                <button
+                  type="button"
+                  onClick={() => changeMode("login")}
+                >
+                  Back to Sign In
+                </button>
+              </div>
             )}
 
             <div className="auth-security-note">
