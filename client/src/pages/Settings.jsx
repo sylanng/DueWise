@@ -1,5 +1,5 @@
-
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import apiRequest from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import DatePicker from 'react-datepicker';
@@ -307,14 +307,11 @@ if (
   return;
 }
 
-  // Confirm profile name changes
-  const nameChanged =
-    fullName !== (user?.displayName || '').trim();
-
-  if (nameChanged && !confirmedNameChange) {
-    setShowNameConfirmation(true);
-    return;
-  }
+  // Confirm all settings changes before saving
+if (!confirmedNameChange) {
+  setShowNameConfirmation(true);
+  return;
+}
 
   try {
     setSaving(true);
@@ -609,30 +606,33 @@ const handlePictureUpload = async () => {
     )}
   </label>
 
-  <label className="profile-form-field">
-    Email Address
-
-    <input
-      type="email"
-      name="email"
-      value={settings.email}
-      onChange={handleChange}
-      placeholder="Enter your email address"
-      required
-      aria-invalid={!!emailError}
-      aria-describedby={emailError ? 'email-error' : undefined}
-    />
-
-    {emailError && (
-      <span
-        id="email-error"
-        className="profile-field-error"
-        role="alert"
-      >
-        {emailError}
-      </span>
+  <label>
+  Email Address
+  <input
+    type="email"
+    name="email"
+    value={settings.email}
+    onChange={handleChange}
+    placeholder="Enter your email address"
+    readOnly={auth.currentUser?.providerData?.some(
+      (provider) => provider.providerId === "google.com"
     )}
-  </label>
+    className={
+      auth.currentUser?.providerData?.some(
+        (provider) => provider.providerId === "google.com"
+      )
+        ? "google-email-readonly"
+        : ""
+    }
+  />
+  {auth.currentUser?.providerData?.some(
+    (provider) => provider.providerId === "google.com"
+  ) && (
+    <small className="field-hint">
+      Your email is managed by your connected Google account.
+    </small>
+  )}
+</label>
 </div>
 
           <div className="settings-actions profile-save-actions">
@@ -1039,34 +1039,22 @@ const handlePictureUpload = async () => {
       </form>
       )}
 
-      {showNameConfirmation && (
+      {showNameConfirmation && createPortal(
         <div className="picture-modal-overlay">
           <div className="picture-modal confirmation-modal">
             <div className="picture-modal-icon">✦</div>
 
-            <h3>Update Your Profile Name?</h3>
+           <h3>Save Your Settings?</h3>
 
-            <p className="picture-modal-description">
-              Are you sure you want to change your DueWise profile name to:
-            </p>
-
-            <strong className="name-confirmation-value">
-              {settings.fullName.trim()}
-            </strong>
+          <p className="picture-modal-description">
+            Are you sure you want to save your changes to your DueWise account settings?
+          </p>
 
             <div className="picture-modal-actions">
               <button
                 type="button"
                 className="picture-cancel-button"
-                onClick={() => {
-                  setSettings((previous) => ({
-                    ...previous,
-                    fullName: user?.displayName || 'User',
-                  }));
-
-                  setShowNameConfirmation(false);
-                  setError('');
-                }}
+                onClick={() => setShowNameConfirmation(false)}
                 disabled={saving}
               >
                 Cancel
@@ -1078,11 +1066,13 @@ const handlePictureUpload = async () => {
                 disabled={saving}
                 onClick={() => handleSubmit(null, true)}
               >
-                {saving ? 'Updating...' : 'Confirm Update'}
+                {saving ? 'Saving...' : 'Confirm Save'}
               </button>
             </div>
           </div>
         </div>
+        ,
+        document.body
       )}
 
       {showPictureModal && (
