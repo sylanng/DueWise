@@ -796,6 +796,14 @@ const handleRecordPayment = (item) => {
               )}
             </div>
 
+            {hasRecordedPayments && (
+              <p className="installment-locked-terms-note" role="note">
+                Purchase amount and payment count are locked because a payment
+                has been recorded. Changing them would affect how your remaining
+                balance is calculated.
+              </p>
+            )}
+
             {!editingId && (
               <div className="installment-payment-preview">
                 <span>Estimated payment per installment</span>

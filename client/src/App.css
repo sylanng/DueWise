@@ -12540,10 +12540,27 @@ body.dark-mode .projection-page .table-wrapper tbody tr:hover small,
   font-size: 13px;
 }
 
+.installment-locked-terms-note {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #dce5f5;
+  border-radius: 9px;
+  background: #f3f7ff;
+  color: #53647d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .app-container[data-theme="dark"] .installment-payment-preview,
 .app-container[data-theme="dark"] .installment-schedule-summary {
   border-color: var(--dw-border);
   background: #253247;
+}
+
+.app-container[data-theme="dark"] .installment-locked-terms-note {
+  border-color: var(--dw-border);
+  background: #253247;
+  color: var(--dw-muted);
 }
 
 .app-container[data-theme="dark"] .installment-payment-preview span,
