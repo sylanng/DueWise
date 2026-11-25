@@ -699,7 +699,7 @@ function Login() {
             )}
 
             {mode === "forgot" && (
-              <div className="auth-forgot-row">
+              <div className="auth-forgot-row auth-back-to-signin">
                 <button
                   type="button"
                   onClick={() => changeMode("login")}

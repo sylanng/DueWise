@@ -4587,6 +4587,10 @@ td:first-child {
   margin-top: -8px;
 }
 
+.auth-back-to-signin {
+  margin-top: 16px;
+}
+
 .auth-forgot-row button {
   border: none;
   background: none;
