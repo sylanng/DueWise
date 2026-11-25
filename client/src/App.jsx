@@ -25,6 +25,7 @@ import {
   ChartNoAxesCombined,
   Calculator,
   History,
+  SlidersHorizontal,
   Settings as SettingsIcon,
   Sun,
   Moon,
@@ -576,6 +577,7 @@ return (
     { name: 'Transactions', icon: History },
     { name: 'Projection', icon: ChartNoAxesCombined },
     { name: 'Purchase Simulator', icon: Calculator },
+    { name: 'Financial Preferences', icon: SlidersHorizontal },
   ];
 
   const renderPage = () => {
@@ -601,6 +603,8 @@ return (
         return <PurchaseSimulator />;
       case 'Settings':
         return <Settings />;
+      case 'Financial Preferences':
+        return <Settings financialOnly />;
       default:
         return <p>Page under development.</p>;
     }
