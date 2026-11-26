@@ -139,6 +139,12 @@ const syncUserDocument = async (firebaseUser) => {
         await currentUser.reload();
         if (active && currentUser.emailVerified) {
           setUser({ ...currentUser });
+
+          try {
+            await syncUserDocument(currentUser);
+          } catch (error) {
+            console.error("Failed to sync verified user profile:", error);
+          }
         }
       } catch (error) {
         console.error("Email verification status refresh failed:", error);
