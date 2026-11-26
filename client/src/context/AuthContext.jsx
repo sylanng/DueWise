@@ -23,10 +23,21 @@ import {
 import { auth, googleProvider, db } from "../services/firebase";
 
 const AuthContext = createContext(null);
+const VERIFICATION_RESEND_COOLDOWN_MS = 60 * 1000;
+const getVerificationCooldownKey = (uid) =>
+  `duewise-verification-resend-until-${uid}`;
+const startVerificationResendCooldown = (uid) => {
+  const availableAt = Date.now() + VERIFICATION_RESEND_COOLDOWN_MS;
+  localStorage.setItem(getVerificationCooldownKey(uid), String(availableAt));
+  return availableAt;
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [verificationResendCooldownUntil, setVerificationResendCooldownUntil] =
+    useState(0);
+  const [verificationResendSeconds, setVerificationResendSeconds] = useState(0);
 
 
 const syncUserDocument = async (firebaseUser) => {
@@ -74,6 +85,22 @@ const syncUserDocument = async (firebaseUser) => {
   );
 
   setUser(currentUser);
+    const cooldownUntil = currentUser
+      ? Number(localStorage.getItem(getVerificationCooldownKey(currentUser.uid)))
+      : 0;
+    const activeCooldownUntil =
+      Number.isFinite(cooldownUntil) && cooldownUntil > Date.now()
+        ? cooldownUntil
+        : 0;
+    if (currentUser && !activeCooldownUntil) {
+      localStorage.removeItem(getVerificationCooldownKey(currentUser.uid));
+    }
+    setVerificationResendCooldownUntil(activeCooldownUntil);
+    setVerificationResendSeconds(
+      activeCooldownUntil
+        ? Math.ceil((activeCooldownUntil - Date.now()) / 1000)
+        : 0
+    );
 
       clearTimeout(loadingTimer);
 
@@ -87,6 +114,77 @@ const syncUserDocument = async (firebaseUser) => {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const pendingEmailVerificationUid =
+      user &&
+      !user.emailVerified &&
+      user.providerData.some((provider) => provider.providerId === "password")
+        ? user.uid
+        : null;
+
+    if (!pendingEmailVerificationUid) return;
+
+    let active = true;
+    let refreshing = false;
+
+    const refreshVerificationStatus = async () => {
+      if (document.visibilityState === "hidden" || refreshing) return;
+
+      const currentUser = auth.currentUser;
+      if (!currentUser || currentUser.uid !== pendingEmailVerificationUid) return;
+
+      refreshing = true;
+      try {
+        await currentUser.reload();
+        if (active && currentUser.emailVerified) {
+          setUser({ ...currentUser });
+        }
+      } catch (error) {
+        console.error("Email verification status refresh failed:", error);
+      } finally {
+        refreshing = false;
+      }
+    };
+
+    const interval = setInterval(refreshVerificationStatus, 5000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshVerificationStatus();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", refreshVerificationStatus);
+    refreshVerificationStatus();
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", refreshVerificationStatus);
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!verificationResendCooldownUntil || !user?.uid) return;
+
+    const updateCooldown = () => {
+      const secondsLeft = Math.max(
+        0,
+        Math.ceil((verificationResendCooldownUntil - Date.now()) / 1000)
+      );
+      setVerificationResendSeconds(secondsLeft);
+
+      if (secondsLeft === 0) {
+        localStorage.removeItem(getVerificationCooldownKey(user.uid));
+        setVerificationResendCooldownUntil(0);
+      }
+    };
+
+    const interval = setInterval(updateCooldown, 1000);
+    return () => clearInterval(interval);
+  }, [verificationResendCooldownUntil, user?.uid]);
 
   // Google authentication
   
@@ -142,6 +240,9 @@ const registerWithEmail = async (email, password, fullName) => {
 
     // Send email verification
     await sendEmailVerification(result.user);
+    setVerificationResendCooldownUntil(
+      startVerificationResendCooldown(result.user.uid)
+    );
 
     setUser({ ...result.user });
 
@@ -202,6 +303,15 @@ const loginWithEmail = async (email, password) => {
         throw new Error("No authenticated user found.");
       }
 
+      const cooldownKey = getVerificationCooldownKey(auth.currentUser.uid);
+      const cooldownUntil = Number(localStorage.getItem(cooldownKey));
+      const secondsLeft = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      if (Number.isFinite(cooldownUntil) && secondsLeft > 0) {
+        throw new Error(
+          `Please wait ${secondsLeft} seconds before requesting another verification email.`
+        );
+      }
+
       await auth.currentUser.reload();
 
       if (auth.currentUser.emailVerified) {
@@ -209,6 +319,9 @@ const loginWithEmail = async (email, password) => {
       }
 
       await sendEmailVerification(auth.currentUser);
+      setVerificationResendCooldownUntil(
+        startVerificationResendCooldown(auth.currentUser.uid)
+      );
       return true;
     } catch (error) {
       console.error("Resend verification error:", error);
@@ -263,6 +376,7 @@ const loginWithEmail = async (email, password) => {
   const value = {
     user,
     loading,
+    verificationResendSeconds,
     loginWithGoogle,
     registerWithEmail,
     loginWithEmail,

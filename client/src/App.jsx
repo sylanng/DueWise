@@ -45,8 +45,8 @@ function App() {
     user,
     loading,
     logout,
-    refreshUser,
     resendVerificationEmail,
+    verificationResendSeconds,
   } = useAuth();
 
   const [activePage, setActivePage] = useState('Dashboard');
@@ -312,7 +312,6 @@ const handleMarkAllAsRead = async () => {
     () => localStorage.getItem('duewise-theme') || 'light'
   );
   const [sendingVerification, setSendingVerification] = useState(false);
-  const [checkingVerification, setCheckingVerification] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState("");
   const [verificationError, setVerificationError] = useState("");
 
@@ -455,20 +454,6 @@ useEffect(() => {
     }
   };
 
-  const handleCheckVerification = async () => {
-    try {
-      setCheckingVerification(true);
-      setVerificationError("");
-      setVerificationMessage("");
-
-      await refreshUser();
-    } catch (error) {
-      setVerificationError(error.message || "Unable to check verification status.");
-    } finally {
-      setCheckingVerification(false);
-    }
-  };
-
   if (loading || isLoadingVisible) {
     return (
       <LoadingScreen
@@ -517,8 +502,8 @@ return (
       </div>
 
       <p className="verification-instruction">
-        Please verify your email address before accessing
-        your DueWise account.
+        After you click the verification link, DueWise will continue
+        automatically. This page checks your status in the background.
       </p>
 
       {verificationMessage && (
@@ -537,21 +522,13 @@ return (
         <button
           className="verification-primary-button"
           onClick={handleResendVerification}
-          disabled={sendingVerification}
+          disabled={sendingVerification || verificationResendSeconds > 0}
         >
           {sendingVerification
             ? "Sending..."
+            : verificationResendSeconds > 0
+            ? `Resend available in ${verificationResendSeconds}s`
             : "Resend Verification Email"}
-        </button>
-
-        <button
-          className="verification-secondary-button"
-          onClick={handleCheckVerification}
-          disabled={checkingVerification}
-        >
-          {checkingVerification
-            ? "Checking..."
-            : "I've Verified My Email"}
         </button>
 
         <button
