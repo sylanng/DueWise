@@ -25,6 +25,7 @@ function Login() {
     resetPassword,
     logout,
     resendVerificationEmail,
+    verificationResendSeconds,
   } = useAuth();
 
   const [error, setError] = useState("");
@@ -651,9 +652,11 @@ function Login() {
                 type="button"
                 className="auth-resend-button"
                 onClick={handleResendVerification}
-                disabled={loggingIn}
+                disabled={loggingIn || verificationResendSeconds > 0}
               >
-                Resend verification email
+                {verificationResendSeconds > 0
+                  ? `Resend available in ${verificationResendSeconds}s`
+                  : "Resend verification email"}
               </button>
             )}
 

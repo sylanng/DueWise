@@ -12168,16 +12168,6 @@ body.dark-mode .projection-page .table-wrapper tbody tr:hover small,
   box-shadow: 0 11px 24px rgba(118, 84, 232, 0.3);
 }
 
-.verification-secondary-button {
-  border: 1px solid #d9cdf8;
-  color: #7654e8;
-  background: #f5f0ff;
-}
-
-.verification-secondary-button:hover {
-  background: #ece4ff;
-}
-
 .verification-signout-button {
   border: 1px solid #eee8f7;
   color: #786c98;
